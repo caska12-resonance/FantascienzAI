@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FantaScienza AI — L'Assistente che Pensa l'Asta al Posto Tuo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root{
+  --bg:#050810;
+  --surface:#0b1020;
+  --elevated:#11182e;
+  --elevated-hover:#1a2240;
+  --border:#1e2744;
+  --border-light:#2a3660;
+  --text:#f0f4fa;
+  --text-secondary:#8b9ab0;
+  --text-muted:#4a5a78;
+  --accent:#6366f1;
+  --accent-bright:#818cf8;
+  --accent-glow:rgba(99,102,241,0.2);
+  --good:#22c55e;
+  --warn:#f59e0b;
+  --bad:#ef4444;
+  --info:#3b82f6;
+  --radius:16px;
+  --radius-sm:12px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  overflow-x:hidden;
+}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#1e2744;border-radius:3px}
+
+/* ANIMATIONS */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.3)}
+  50%{box-shadow:0 0 0 12px rgba(99,102,241,0)}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+@keyframes gradientShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@keyframes barGrow{
+  from{width:0}
+  to{width:var(--target-width)}
+}
+
+.anim-fadeUp{animation:fadeUp .8s ease-out both}
+.anim-delay-1{animation-delay:.1s}
+.anim-delay-2{animation-delay:.2s}
+.anim-delay-3{animation-delay:.3s}
+.anim-delay-4{animation-delay:.4s}
+.anim-delay-5{animation-delay:.5s}
+
+/* HERO */
+.hero{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:100px 24px 80px;
+  position:relative;
+  overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(99,102,241,0.12),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 50%,rgba(139,92,246,0.06),transparent),
+    radial-gradient(ellipse 50% 50% at 20% 80%,rgba(59,130,246,0.06),transparent);
+}
+.hero-grid{
+  position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.15;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);
+  color:var(--accent-bright);padding:8px 18px;border-radius:999px;
+  font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
+  margin-bottom:32px;backdrop-filter:blur(8px);position:relative;z-index:1;
+  animation:fadeUp .6s ease-out both;
+}
+.hero-badge::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--good);
+  box-shadow:0 0 8px var(--good);animation:pulse 2s infinite;
+}
+.hero h1{
+  font-size:clamp(42px,7vw,78px);font-weight:900;line-height:1.0;
+  letter-spacing:-3px;margin-bottom:20px;position:relative;z-index:1;
+  animation:fadeUp .7s ease-out .1s both;
+}
+.hero h1 .brand-main{color:var(--text)}
+.hero h1 .brand-accent{
+  background:linear-gradient(135deg,var(--accent),#a78bfa,#60a5fa);
+  background-size:200% 200%;animation:gradientShift 4s ease infinite;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{
+  max-width:720px;color:var(--text-secondary);font-size:clamp(17px,2.2vw,21px);
+  font-weight:400;line-height:1.65;margin-bottom:40px;position:relative;z-index:1;
+  animation:fadeUp .7s ease-out .2s both;
+}
+.hero-cta{
+  display:flex;gap:14px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1;
+  animation:fadeUp .7s ease-out .3s both;
+}
+.btn{
+  border:1px solid var(--border);background:var(--elevated);color:var(--text);
+  padding:14px 28px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;
+  text-decoration:none;position:relative;overflow:hidden;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,0.04),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.btn:hover::before{opacity:1}
+.btn:hover{background:var(--elevated-hover);border-color:var(--border-light);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.btn.primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent-soft));
+  border:none;color:#fff;box-shadow:0 4px 24px rgba(99,102,241,0.3);
+  font-size:17px;padding:18px 36px;
+}
+.btn.primary:hover{box-shadow:0 8px 32px rgba(99,102,241,0.45);transform:translateY(-3px)}
+.btn.ghost{background:transparent;border-color:rgba(99,102,241,0.15);color:var(--text-secondary)}
+.btn.ghost:hover{background:rgba(99,102,241,0.06);border-color:rgba(99,102,241,0.3);color:var(--text)}
+
+.hero-stats{
+  display:flex;gap:48px;flex-wrap:wrap;justify-content:center;margin-top:72px;
+  position:relative;z-index:1;animation:fadeUp .8s ease-out .5s both;
+}
+.hero-stat{text-align:center;position:relative}
+.hero-stat b{display:block;font-size:36px;font-weight:800;color:var(--text);line-height:1}
+.hero-stat span{color:var(--text-muted);font-size:13px;font-weight:500;margin-top:6px;display:block;letter-spacing:0.02em}
+.hero-stat::after{
+  content:'';position:absolute;right:-24px;top:50%;transform:translateY(-50%);
+  width:1px;height:40px;background:var(--border);display:block;
+}
+.hero-stat:last-child::after{display:none}
+
+/* SECTIONS */
+.section{padding:100px 24px;max-width:1200px;margin:0 auto}
+.section-head{text-align:center;margin-bottom:64px}
+.section-head h2{font-size:clamp(30px,4.5vw,44px);font-weight:800;letter-spacing:-1px;margin-bottom:16px}
+.section-head p{color:var(--text-secondary);font-size:17px;max-width:640px;margin:0 auto;line-height:1.6}
+
+/* ADAPTIVE MODEL — THE STAR SECTION */
+.adaptive-section{
+  background:linear-gradient(180deg,var(--surface) 0%,var(--bg) 100%);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:100px 24px;position:relative;overflow:hidden;
+}
+.adaptive-section::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:600px;height:300px;background:radial-gradient(ellipse,rgba(99,102,241,0.08),transparent 70%);
+  pointer-events:none;
+}
+.adaptive-grid{
+  max-width:1200px;margin:0 auto;display:grid;
+  grid-template-columns:1fr 1.2fr;gap:60px;align-items:center;
+}
+.adaptive-left h2{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-1px;margin-bottom:20px}
+.adaptive-left h2 span{color:var(--accent-bright)}
+.adaptive-left p{color:var(--text-secondary);font-size:16px;line-height:1.7;margin-bottom:28px}
+.adaptive-points{list-style:none;display:flex;flex-direction:column;gap:14px}
+.adaptive-points li{
+  display:flex;align-items:flex-start;gap:12px;
+  color:var(--text-secondary);font-size:14px;line-height:1.6;
+}
+.adaptive-points li::before{
+  content:'▸';color:var(--accent);font-weight:700;flex-shrink:0;margin-top:1px;
+}
+
+/* DYNAMIC VISUAL */
+.adaptive-visual{
+  background:var(--elevated);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;position:relative;
+}
+.adaptive-visual::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--good),var(--warn),var(--bad));border-radius:3px 3px 0 0;
+}
+.vis-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;
+}
+.vis-header h4{font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em}
+.vis-live{
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--good);
+}
+.vis-live::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--good);
+  box-shadow:0 0 6px var(--good);animation:pulse 2s infinite;
+}
+.vis-player{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+  margin-bottom:16px;
+}
+.vis-avatar{
+  width:40px;height:40px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;
+  background:rgba(245,158,11,0.12);color:var(--warn);border:1px solid rgba(245,158,11,0.3);
+}
+.vis-name h5{margin:0;font-size:15px;font-weight:700}
+.vis-name .meta{color:var(--text-muted);font-size:12px;margin-top:2px}
+.vis-price-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;
+}
+.vis-price-box{
+  text-align:center;padding:12px;background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+}
+.vis-price-box .label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+.vis-price-box .value{font-size:18px;font-weight:800;margin-top:4px}
+.vis-price-box.good .value{color:var(--good)}
+.vis-price-box.warn .value{color:var(--warn)}
+.vis-price-box.bad .value{color:var(--bad)}
+
+.vis-bar-wrap{position:relative;margin-bottom:8px}
+.vis-bar-bg{height:8px;background:var(--bg);border-radius:999px;overflow:hidden;display:flex}
+.vis-zone{height:100%}
+.vis-zone.buy{background:var(--good)}.vis-zone.raise{background:var(--warn)}.vis-zone.stop{background:var(--bad)}
+.vis-thumb{position:absolute;top:-4px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.5);border:3px solid var(--accent);transition:left .5s ease}
+.vis-strat{
+  padding:12px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;
+  background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);color:var(--good);
+}
+
+/* FEATURES GRID */
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;
+}
+.feature{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;transition:all .3s;position:relative;overflow:hidden;
+}
+.feature:hover{border-color:var(--border-light);transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.35)}
+.feature::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--info));opacity:.5;transition:opacity .3s;
+}
+.feature:hover::before{opacity:1}
+.feature-icon{
+  width:48px;height:48px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:var(--accent-glow);border:1px solid rgba(99,102,241,0.15);
+  margin-bottom:18px;transition:transform .3s;
+}
+.feature:hover .feature-icon{transform:scale(1.1)}
+.feature h3{font-size:17px;font-weight:700;margin-bottom:10px}
+.feature p{color:var(--text-secondary);font-size:14px;line-height:1.65}
+.feature .tag{
+  display:inline-block;margin-top:14px;padding:4px 12px;border-radius:999px;
+  background:var(--elevated);color:var(--text-muted);font-size:11px;font-weight:600;
+  border:1px solid var(--border);
+}
+
+/* HOW IT WORKS */
+.steps-section{background:linear-gradient(180deg,transparent 0%,var(--surface) 20%,var(--surface) 80%,transparent 100%);padding:100px 24px}
+.steps{
+  max-width:1000px;margin:0 auto;display:grid;
+  grid-template-columns:repeat(3,1fr);gap:24px;
+}
+.step{
+  background:var(--elevated);border:1px solid var(--border);border-radius:var(--radius);
+  padding:32px 24px;text-align:center;position:relative;transition:all .3s;
+}
+.step:hover{border-color:var(--border-light);transform:translateY(-4px)}
+.step-num{
+  width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-soft));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;margin:0 auto 20px;box-shadow:0 4px 16px rgba(99,102,241,0.3);
+}
+.step h3{font-size:17px;font-weight:700;margin-bottom:10px}
+.step p{color:var(--text-secondary);font-size:14px;line-height:1.6}
+
+/* DATA TABLE */
+.data-section{
+  background:linear-gradient(180deg,var(--surface) 0%,var(--elevated) 100%);
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:32px;
+}
+.data-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:20px}
+.data-table th{text-align:left;padding:12px 14px;color:var(--text-secondary);font-size:11px;
+  text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border);font-weight:600}
+.data-table td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.data-table tr:hover td{background:rgba(99,102,241,0.04)}
+.data-table .price{color:var(--good);font-weight:700;font-size:14px}
+.data-table .role{font-weight:700}
+.role-P{color:#60a5fa}.role-D{color:#4ade80}.role-C{color:#fbbf24}.role-A{color:#fca5a5}
+
+/* CTA */
+.cta-section{
+  text-align:center;padding:120px 24px 100px;
+  position:relative;overflow:hidden;
+}
+.cta-section::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 40% at 50% 50%,rgba(99,102,241,0.08),transparent);
+  pointer-events:none;
+}
+.cta-section h2{font-size:clamp(32px,5vw,48px);font-weight:800;margin-bottom:16px;position:relative;z-index:1}
+.cta-section p{color:var(--text-secondary);font-size:17px;margin-bottom:40px;max-width:520px;margin-left:auto;margin-right:auto;position:relative;z-index:1;line-height:1.6}
+
+/* FOOTER */
+.footer{text-align:center;padding:48px 24px;color:var(--text-muted);font-size:13px;border-top:1px solid var(--border)}
+
+/* SCREENSHOT MOCKUP */
+.screenshot-wrap{
+  max-width:1100px;margin:0 auto;
+  perspective:1200px;
+}
+.screenshot-browser{
+  background:#0b1020;border:1px solid #1e2744;border-radius:16px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(99,102,241,0.1);
+  overflow:hidden;transform:rotateX(2deg);transition:transform .4s;
+}
+.screenshot-browser:hover{transform:rotateX(0deg) scale(1.01)}
+.browser-bar{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:#070a12;border-bottom:1px solid #1e2744;
+}
+.browser-dots{display:flex;gap:6px}
+.browser-dots span{width:10px;height:10px;border-radius:50%}
+.browser-dots span:nth-child(1){background:#ef4444}
+.browser-dots span:nth-child(2){background:#f59e0b}
+.browser-dots span:nth-child(3){background:#22c55e}
+.browser-url{
+  flex:1;text-align:center;font-size:11px;color:#4a5a78;
+  background:#11182e;padding:4px 12px;border-radius:6px;border:1px solid #1e2744;
+  font-family:ui-monospace,monospace;
+}
+.screenshot-body{padding:10px;font-size:11px;line-height:1.4}
+
+/* SS Components */
+.ss-header{
+  display:flex;justify-content:space-between;align-items:center;
+  background:linear-gradient(135deg,#0f1420,#161d2d);border:1px solid #1e2744;
+  border-radius:10px;padding:10px 14px;margin-bottom:8px;
+}
+.ss-brand-title{font-size:16px;font-weight:800;letter-spacing:-0.5px}
+.ss-brand-title span{color:#818cf8}
+.ss-brand-sub{font-size:10px;color:#5c6b80;margin-top:1px}
+.ss-btns{display:flex;gap:6px}
+.ss-btn{background:#161d2d;border:1px solid #1e2744;border-radius:6px;padding:4px 8px;font-size:11px}
+.ss-btn-red{color:#fca5a5;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08)}
+
+.ss-stats{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;
+}
+.ss-stat{
+  background:#0f1420;border:1px solid #1e2744;border-radius:8px;padding:8px 6px;text-align:center;position:relative;overflow:hidden;
+}
+.ss-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#6366f1,#3b82f6);opacity:.6}
+.ss-stat b{display:block;font-size:15px;font-weight:800;margin-bottom:1px}
+.ss-stat span{color:#5c6b80;font-size:9px;font-weight:500}
+.ss-stat-good::before{background:#22c55e}
+.ss-stat-mine::before{background:#60a5fa}
+.ss-stat-warn::before{background:#f59e0b}
+
+.ss-grid{display:grid;grid-template-columns:1.5fr .9fr .7fr;gap:8px}
+.ss-card{
+  background:#0f1420;border:1px solid #1e2744;border-radius:10px;overflow:hidden;
+}
+.ss-card-head{
+  padding:8px 10px;border-bottom:1px solid #1e2744;
+  display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;
+}
+.ss-card-head span{font-weight:400;color:#5c6b80;font-size:10px;margin-left:6px}
+.ss-tag{
+  background:#161d2d;border:1px solid #1e2744;color:#8b9ab0;
+  padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;
+}
+.ss-tag-live{background:rgba(99,102,241,0.12);color:#a5b4fc;border-color:rgba(99,102,241,0.25)}
+
+.ss-listone .ss-card-head{padding-bottom:6px}
+.ss-filters{
+  display:grid;grid-template-columns:1.5fr .6fr .7fr .7fr;gap:6px;
+  padding:6px 10px;border-bottom:1px solid #1e2744;
+}
+.ss-filter{
+  background:#070a12;border:1px solid #1e2744;border-radius:6px;padding:5px 8px;
+  font-size:10px;color:#8b9ab0;
+}
+
+.ss-table-wrap{overflow:auto;max-height:160px;padding:0 6px}
+.ss-table{width:100%;border-collapse:collapse;font-size:9px}
+.ss-table th{
+  position:sticky;top:0;background:#070a12;text-align:left;padding:5px 6px;
+  font-weight:600;color:#5c6b80;font-size:8px;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid #1e2744;white-space:nowrap;
+}
+.ss-table td{padding:4px 6px;border-bottom:1px solid #141c2e;white-space:nowrap;vertical-align:middle}
+.ss-table tr:hover td{background:rgba(99,102,241,0.04)}
+
+.ss-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:999px;font-size:8px;font-weight:700}
+.ss-pill-free{background:rgba(34,197,94,0.1);color:#4ade80}
+.ss-pill-mine{background:rgba(96,165,250,0.1);color:#93c5fd}
+.ss-pill-other{background:rgba(245,158,11,0.1);color:#fbbf24}
+.ss-role-A{color:#fca5a5;font-weight:800}
+.ss-role-C{color:#fbbf24;font-weight:800}
+.ss-role-D{color:#4ade80;font-weight:800}
+.ss-role-P{color:#60a5fa;font-weight:800}
+.ss-score-splus{color:#6ee7b7;font-weight:800;font-size:11px}
+.ss-score-sgood{color:#93c5fd;font-weight:800;font-size:11px}
+
+/* Focus panel */
+.ss-focus-body{padding:10px}
+.ss-focus-player{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ss-avatar{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);flex-shrink:0}
+.ss-avatar-A{background:rgba(239,68,68,0.08);color:#fca5a5;border-color:rgba(239,68,68,0.3)}
+
+.ss-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.ss-metric{background:#070a12;border:1px solid #1e2744;border-radius:6px;padding:8px}
+.ss-label{font-size:8px;color:#5c6b80;text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+.ss-value{font-size:16px;font-weight:800;margin-top:2px;line-height:1}
+
+.ss-bar-wrap{position:relative;margin-bottom:4px}
+.ss-bar-bg{height:6px;background:#070a12;border-radius:999px;overflow:hidden;display:flex;position:relative}
+.ss-thumb{position:absolute;top:-3px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.5);border:2px solid #6366f1;transform:translateX(-50%)}
+
+.ss-strat-box{
+  padding:10px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);
+  border-radius:8px;
+}
+
+.ss-col3{display:flex;flex-direction:column;gap:8px}
+
+@media(max-width:900px){
+  .ss-grid{grid-template-columns:1fr}
+  .ss-col3{display:none}
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+/* RESPONSIVE */
+@media(max-width:900px){
+  .adaptive-grid{grid-template-columns:1fr;gap:40px}
+  .steps{grid-template-columns:1fr}
+  .hero-stat::after{display:none}
+}
+@media(max-width:700px){
+  .hero-stats{gap:28px}
+  .hero-stat b{font-size:28px}
+  .features-grid{grid-template-columns:1fr}
+  .vis-price-row{grid-template-columns:1fr}
+}
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-badge">⚡ Stagione 2026/27 · Modello Adattivo in Tempo Reale</div>
+
+  <h1><span class="brand-main">Fanta</span><span class="brand-accent">Scienza</span> <span class="brand-main">AI</span></h1>
+
+  <p class="hero-sub">
+    L'unico assistente per il Fantacalcio che <b>pensa durante l'asta</b>. 
+    Non ti dà prezzi fissi: calcola in tempo reale quanto vale un giocatore 
+    in base a chi è già stato preso, quanto hanno speso i rivali e quanti slot ti restano. 
+    Ogni consiglio si evolve mentre l'asta avanza.
+  </p>
+
+  <div class="hero-cta">
+    <a href="https://caska12-resonance.github.io/FantascienzAI/" class="btn primary" target="_blank">🚀 ACCEDI AL TOOL</a>
+    <a href="#adaptive" class="btn ghost">Scopri il modello adattivo ↓</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat"><b>515</b><span>Giocatori</span></div>
+    <div class="hero-stat"><b>∞</b><span>Configurazioni</span></div>
+    <div class="hero-stat"><b>6</b><span>Fattori AI</span></div>
+    <div class="hero-stat"><b>0</b><span>Installazione</span></div>
+  </div>
+</section>
+
+<!-- ADAPTIVE MODEL — THE CORE FEATURE -->
+<section class="adaptive-section" id="adaptive">
+  <div class="adaptive-grid">
+    <div class="adaptive-left anim-fadeUp">
+      <h2>Il modello che <span>impara durante l'asta</span></h2>
+      <p>
+        FantaScienza AI non è una tabella statica di prezzi. È un motore decisionale 
+        che <b>ricalcola ogni consiglio in tempo reale</b> man mano che l'asta procede. 
+        Ogni volta che un giocatore viene acquistato, il modello si aggiorna.
+      </p>
+      <ul class="adaptive-points">
+        <li><b>Scarsità reparto dinamica</b> — Se i top difensori volano via in fretta, il prezzo massimo dei rimanenti sale automaticamente del 12%. Se ne restano tanti, scende.</li>
+        <li><b>Concorrenza live</b> — Il tool conta in tempo reale quanti rivali hanno ancora slot liberi E budget per competere con te. Più rivali attivi, più il prezzo massimo sale.</li>
+        <li><b>Budget reparto adattivo</b> — Se hai già speso 80 crediti sugli attaccanti, il modello abbassa il tetto sugli altri attaccanti per proteggerti. Se hai risparmiato, ti lascia spingere di più.</li>
+        <li><b>Solvibilità obbligatoria</b> — Calcola automaticamente quanto budget ti serve per chiudere la rosa con i giocatori più economici rimasti. Non ti lascia mai a corto di crediti.</li>
+        <li><b>Prezzi di mercato reali</b> — Parte da dati aggregati di Fantacalcio.it, Gazzetta e SOS Fanta, poi li adatta al tuo budget e al numero di squadre.</li>
+      </ul>
+    </div>
+
+    <div class="adaptive-visual anim-fadeUp anim-delay-2">
+      <div class="vis-header">
+        <h4>🔴 Focus Live — In Asta</h4>
+        <div class="vis-live">Modello aggiornato</div>
+      </div>
+
+      <div class="vis-player">
+        <div class="vis-avatar">⚽</div>
+        <div class="vis-name">
+          <h5>Thuram</h5>
+          <div class="meta">Inter · A · Fascia S</div>
+        </div>
+      </div>
+
+      <div class="vis-price-row">
+        <div class="vis-price-box good">
+          <div class="label">Prezzo Ideale</div>
+          <div class="value">103</div>
+        </div>
+        <div class="vis-price-box warn">
+          <div class="label">Massimo Live</div>
+          <div class="value">118</div>
+        </div>
+        <div class="vis-price-box bad">
+          <div class="label">Tuo Budget A</div>
+          <div class="value">145</div>
+        </div>
+      </div>
+
+      <div class="vis-bar-wrap">
+        <div class="vis-bar-bg">
+          <div class="vis-zone buy" style="width:55%"></div>
+          <div class="vis-zone raise" style="width:30%"></div>
+          <div class="vis-zone stop" style="width:15%"></div>
+        </div>
+        <div class="vis-thumb" style="left:62%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:16px">
+        <span style="color:var(--good)">Compra</span>
+        <span style="color:var(--warn)">Rilancia</span>
+        <span style="color:var(--bad)">Passa</span>
+      </div>
+
+      <div class="vis-strat">
+        🟡 RILANCIA — Il prezzo è sostenibile ma 3 rivali hanno ancora slot A liberi. Se superi 118, entri in zona scarsità.
+      </div>
+
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px">
+        <div style="text-align:center;padding:8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="color:var(--text-muted);font-size:10px">Slot A liberi</div>
+          <div style="font-weight:700;color:var(--warn);margin-top:2px">3/6</div>
+        </div>
+        <div style="text-align:center;padding:8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="color:var(--text-muted);font-size:10px">Rivali attivi</div>
+          <div style="font-weight:700;color:var(--accent-bright);margin-top:2px">3 su 7</div>
+        </div>
+        <div style="text-align:center;padding:8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="color:var(--text-muted);font-size:10px">Alt. simili</div>
+          <div style="font-weight:700;color:var(--good);margin-top:2px">4 libere</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNZIONI -->
+<section class="section" id="funzioni">
+  <div class="section-head anim-fadeUp">
+    <h2>Cosa fa FantaScienza AI</h2>
+    <p>Tutto quello che serve per dominare l'asta, in un unico tool che gira nel browser — anche offline e con qualsiasi regolamento.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature anim-fadeUp anim-delay-1">
+      <div class="feature-icon">⚙️</div>
+      <h3>Regolamento su misura</h3>
+      <p>Imposta il numero di partecipanti (8-10), il budget (100-1000 crediti), gli slot per reparto e la ripartizione budget. FantaScienza AI si adatta al TUO campionato, non il contrario.</p>
+      <span class="tag">Personalizzabile al 100%</span>
+    </div>
+    <div class="feature anim-fadeUp anim-delay-2">
+      <div class="feature-icon">🧠</div>
+      <h3>Modello adattivo in tempo reale</h3>
+      <p>Ogni consiglio si aggiorna istantaneamente quando un giocatore viene acquistato. Se i prezzi di un reparto esplodono, il modello lo capisce e ti protegge. Se restano occasioni, te le segnala.</p>
+      <span class="tag">Ricalcola ad ogni acquisto</span>
+    </div>
+    <div class="feature anim-fadeUp anim-delay-3">
+      <div class="feature-icon">🎯</div>
+      <h3>Focus giocatore live</h3>
+      <p>Clicca un giocatore e ottieni: prezzo ideale, massimo consigliato, fascia di valore, concorrenza e scarsità. Una barra colorata ti dice se è zona "Compra", "Rilancia", "Scarsità" o "Passa".</p>
+      <span class="tag">Interfaccia istantanea</span>
+    </div>
+    <div class="feature anim-fadeUp anim-delay-4">
+      <div class="feature-icon">⭐</div>
+      <h3>I tuoi target</h3>
+      <p>Segna con una stella i giocatori che vuoi assolutamente. Appariranno in una lista dedicata con prezzo aggiornato e stato (libero/preso). Non perderai mai di vista i tuoi obiettivi.</p>
+      <span class="tag">Salvati automaticamente</span>
+    </div>
+    <div class="feature anim-fadeUp anim-delay-5">
+      <div class="feature-icon">🔄</div>
+      <h3>Alternative intelligenti</h3>
+      <p>Per ogni giocatore, FantaScienza AI propone 4 alternative libere dello stesso reparto con prezzo simile. Se ti sfugge un attaccante da 50 crediti, ti mostra subito chi puoi prendere allo stesso prezzo.</p>
+      <span class="tag">Ordinate per prossimità di prezzo</span>
+    </div>
+    <div class="feature anim-fadeUp anim-delay-5">
+      <div class="feature-icon">⚔️</div>
+      <h3>Spia i rivali</h3>
+      <p>Per ogni squadra avversaria vedi: budget residuo, slot occupati per reparto e quanto hanno già speso in P/D/C/A. Sai subito chi può ancora contenderti un attaccante e chi ha già bruciato tutto.</p>
+      <span class="tag">Analisi reparto per reparto</span>
+    </div>
+  </div>
+</section>
+
+<!-- COME FUNZIONA -->
+<section class="steps-section">
+  <div class="section-head" style="margin-bottom:48px">
+    <h2>Come si usa</h2>
+    <p>Tre passaggi. Zero configurazione obbligatoria. Apri il file e sei pronto.</p>
+  </div>
+  <div class="steps">
+    <div class="step anim-fadeUp anim-delay-1">
+      <div class="step-num">1</div>
+      <h3>Apri il file</h3>
+      <p>Scarica <code>fanta.html</code> e aprilo con Chrome, Firefox o Edge. Funziona offline, senza installare nulla. I dati restano salvati nel browser tra un refresh e l'altro.</p>
+    </div>
+    <div class="step anim-fadeUp anim-delay-2">
+      <div class="step-num">2</div>
+      <h3>Personalizza il regolamento</h3>
+      <p>Clicca "⚙️ Impostazioni" per impostare: numero di squadre, budget, nomi dei rivali, slot per reparto e ripartizione budget. Ogni parametro è modificabile in qualsiasi momento.</p>
+    </div>
+    <div class="step anim-fadeUp anim-delay-3">
+      <div class="step-num">3</div>
+      <h3>Segui i consigli live</h3>
+      <p>Durante l'asta, clicca il giocatore in discussione, inserisci il prezzo corrente nella barra e leggi il consiglio: Compra, Rilancia, Scarsità o Passa. Assegna con un click e il modello si aggiorna.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOT APP -->
+<section class="section">
+  <div class="section-head anim-fadeUp">
+    <h2>Come appare FantaScienza AI</h2>
+    <p>Un'interfaccia scura, pulita e pensata per l'uso in asta. Tutto ciò che ti serve in un colpo d'occhio.</p>
+  </div>
+  <div class="screenshot-wrap anim-fadeUp anim-delay-2">
+    <div class="screenshot-browser">
+      <div class="browser-bar">
+        <div class="browser-dots"><span></span><span></span><span></span></div>
+        <div class="browser-url">fantascienza-ai.html</div>
+      </div>
+      <div class="screenshot-body">
+        <!-- HEADER -->
+        <div class="ss-header">
+          <div class="ss-brand">
+            <div class="ss-brand-title">FantaScienza <span>AI</span></div>
+            <div class="ss-brand-sub">8 squadre · 500 crediti · Assistente asta live</div>
+          </div>
+          <div class="ss-btns">
+            <span class="ss-btn">⚙️</span>
+            <span class="ss-btn">📥</span>
+            <span class="ss-btn ss-btn-red">🗑️</span>
+          </div>
+        </div>
+        <!-- STATS BAR -->
+        <div class="ss-stats">
+          <div class="ss-stat"><b>515</b><span>Giocatori</span></div>
+          <div class="ss-stat ss-stat-good"><b>312</b><span>Disponibili</span></div>
+          <div class="ss-stat ss-stat-mine"><b>500</b><span>Budget mio</span></div>
+          <div class="ss-stat ss-stat-warn"><b>0</b><span>Speso</span></div>
+          <div class="ss-stat"><b>0</b><span>Acquistati</span></div>
+          <div class="ss-stat"><b>Pronto</b><span>Stato asta</span></div>
+        </div>
+        <!-- MAIN GRID -->
+        <div class="ss-grid">
+          <!-- LISTONE -->
+          <div class="ss-card ss-listone">
+            <div class="ss-card-head">
+              <div><b>📋 Listone</b><span>Clicca una riga per analizzare</span></div>
+              <span class="ss-tag">515 visibili</span>
+            </div>
+            <div class="ss-filters">
+              <span class="ss-filter">🔍 Cerca giocatore...</span>
+              <span class="ss-filter">Tutti i ruoli ▾</span>
+              <span class="ss-filter">Tutte le squadre ▾</span>
+              <span class="ss-filter">AI Score ↓ ▾</span>
+            </div>
+            <div class="ss-table-wrap">
+              <table class="ss-table">
+                <tr><th>Stato</th><th>Giocatore</th><th>R</th><th>RM</th><th>Sq</th><th>QA</th><th>FVM</th><th>AI</th><th>Ideale</th><th>Max</th></tr>
+                <tr><td><span class="ss-pill ss-pill-free">● Libero</span></td><td><b>Lautaro Martinez</b></td><td class="ss-role-A">A</td><td>Pc</td><td>Inter</td><td>88</td><td>370</td><td class="ss-score-splus">99</td><td>140</td><td><b>155</b></td></tr>
+                <tr><td><span class="ss-pill ss-pill-free">● Libero</span></td><td><b>Malen</b></td><td class="ss-role-A">A</td><td>Pc</td><td>Roma</td><td>84</td><td>365</td><td class="ss-score-splus">99</td><td>142</td><td><b>158</b></td></tr>
+                <tr><td><span class="ss-pill ss-pill-free">● Libero</span></td><td><b>Thuram</b></td><td class="ss-role-A">A</td><td>Pc</td><td>Inter</td><td>74</td><td>280</td><td class="ss-score-sgood">97</td><td>103</td><td><b>115</b></td></tr>
+                <tr><td><span class="ss-pill ss-pill-free">● Libero</span></td><td><b>Dimarco</b></td><td class="ss-role-D">D</td><td>E;W</td><td>Inter</td><td>43</td><td>265</td><td class="ss-score-splus">96</td><td>55</td><td><b>62</b></td></tr>
+                <tr><td><span class="ss-pill ss-pill-free">● Libero</span></td><td><b>Paz</b></td><td class="ss-role-C">C</td><td>T;A</td><td>Como</td><td>59</td><td>250</td><td class="ss-score-splus">96</td><td>81</td><td><b>91</b></td></tr>
+                <tr><td><span class="ss-pill ss-pill-mine">● TUO</span></td><td><b>Svilar</b></td><td class="ss-role-P">P</td><td>Por</td><td>Roma</td><td>38</td><td>65</td><td class="ss-score-sgood">88</td><td>35</td><td><b>39</b></td></tr>
+                <tr><td><span class="ss-pill ss-pill-other">● Preso</span></td><td><b>McTominay</b></td><td class="ss-role-C">C</td><td>C;T</td><td>Napoli</td><td>60</td><td>240</td><td class="ss-score-sgood">94</td><td>—</td><td>—</td></tr>
+              </table>
+            </div>
+          </div>
+          <!-- FOCUS -->
+          <div class="ss-card ss-focus">
+            <div class="ss-card-head"><b>🎯 Focus Giocatore</b><span class="ss-tag ss-tag-live">libero</span></div>
+            <div class="ss-focus-body">
+              <div class="ss-focus-player">
+                <div class="ss-avatar ss-avatar-A">⚽</div>
+                <div>
+                  <div style="font-weight:700;font-size:14px">Thuram</div>
+                  <div style="font-size:11px;color:var(--text-muted)">Inter · Pc · Fascia S</div>
+                </div>
+              </div>
+              <div class="ss-metrics">
+                <div class="ss-metric"><div class="ss-label">AI Score</div><div class="ss-value" style="color:#6ee7b7">97</div></div>
+                <div class="ss-metric"><div class="ss-label">Prezzo ideale</div><div class="ss-value">103</div></div>
+                <div class="ss-metric"><div class="ss-label">Massimo live</div><div class="ss-value">115</div></div>
+                <div class="ss-metric"><div class="ss-label">Quotazione</div><div class="ss-value" style="font-size:14px">74 / 280</div></div>
+              </div>
+              <div class="ss-bar-wrap">
+                <div class="ss-bar-bg">
+                  <div class="ss-zone" style="width:55%;background:#22c55e"></div>
+                  <div class="ss-zone" style="width:30%;background:#f59e0b"></div>
+                  <div class="ss-zone" style="width:15%;background:#ef4444"></div>
+                </div>
+                <div class="ss-thumb" style="left:62%"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:9px;color:#5c6b80;margin-bottom:10px">
+                <span style="color:#22c55e">Compra</span><span style="color:#f59e0b">Rilancia</span><span style="color:#ef4444">Passa</span>
+              </div>
+              <div class="ss-strat-box">
+                <div style="font-weight:700;font-size:12px;margin-bottom:4px">🟡 RILANCIA</div>
+                <div style="font-size:11px;color:#8b9ab0;line-height:1.5">Il prezzo è sostenibile ma 3 rivali hanno ancora slot A liberi.</div>
+              </div>
+            </div>
+          </div>
+          <!-- COL LOG -->
+          <div class="ss-col3">
+            <div class="ss-card" style="margin-bottom:10px">
+              <div class="ss-card-head"><b>⭐ I miei target</b><span class="ss-tag">2</span></div>
+              <div style="padding:8px;font-size:10px">
+                <div style="display:flex;justify-content:space-between;padding:6px 8px;background:#0b1020;border-radius:6px;margin-bottom:4px;border:1px solid #1e2744">
+                  <span><b>Thuram</b> <span style="color:#5c6b80">· Inter · 97</span></span>
+                  <span style="font-weight:700">103</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 8px;background:#0b1020;border-radius:6px;border:1px solid #1e2744;opacity:.6">
+                  <span><b>McTominay</b> <span style="color:#5c6b80">· Napoli · 94</span></span>
+                  <span style="font-weight:700;color:#5c6b80">preso</span>
+                </div>
+              </div>
+            </div>
+            <div class="ss-card">
+              <div class="ss-card-head"><b>🏟️ Le 8 Rose</b></div>
+              <div style="padding:8px;font-size:10px">
+                <div style="padding:8px;background:#0b1020;border-radius:8px;border:1px solid rgba(96,165,250,0.3);margin-bottom:6px">
+                  <div style="display:flex;justify-content:space-between;font-weight:700;margin-bottom:4px"><span>La mia squadra</span><span style="color:#8b9ab0">500 cr</span></div>
+                  <div style="height:4px;background:#1e2744;border-radius:999px;margin-bottom:6px"><div style="width:0%;height:100%;background:#22c55e;border-radius:999px"></div></div>
+                  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:6px">
+                    <div style="text-align:center;padding:2px;background:#11182e;border-radius:4px;border:1px solid #1e2744;color:#22c55e;font-size:9px">0/3 P</div>
+                    <div style="text-align:center;padding:2px;background:#11182e;border-radius:4px;border:1px solid #1e2744;color:#22c55e;font-size:9px">0/8 D</div>
+                    <div style="text-align:center;padding:2px;background:#11182e;border-radius:4px;border:1px solid #1e2744;color:#22c55e;font-size:9px">0/8 C</div>
+                    <div style="text-align:center;padding:2px;background:#11182e;border-radius:4px;border:1px solid #1e2744;color:#22c55e;font-size:9px">0/6 A</div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;font-size:9px;color:#5c6b80">
+                    <div style="text-align:center">0/40</div>
+                    <div style="text-align:center">0/75</div>
+                    <div style="text-align:center">0/135</div>
+                    <div style="text-align:center">0/250</div>
+                  </div>
+                </div>
+                <div style="padding:8px;background:#0b1020;border-radius:8px;border:1px solid #1e2744;opacity:.7">
+                  <div style="display:flex;justify-content:space-between;font-weight:700;margin-bottom:4px"><span>Rivale 1</span><span style="color:#8b9ab0">465 cr</span></div>
+                  <div style="height:4px;background:#1e2744;border-radius:999px;margin-bottom:4px"><div style="width:7%;height:100%;background:#f59e0b;border-radius:999px"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINALE -->
+<section class="cta-section">
+  <h2 class="anim-fadeUp">Pronto per l'asta più intelligente della tua vita?</h2>
+  <p class="anim-fadeUp anim-delay-1">
+    Scarica FantaScienza AI, imposta il tuo regolamento e portati in asta un vantaggio 
+    che i tuoi avversari non possono nemmeno immaginare.
+  </p>
+  <div class="anim-fadeUp anim-delay-2">
+    <a href="https://caska12-resonance.github.io/FantascienzAI/" class="btn primary" target="_blank" style="font-size:18px;padding:20px 44px">
+      🚀 ACCEDI AL TOOL
+    </a>
+  </div>
+  <p style="margin-top:20px;color:var(--text-muted);font-size:13px" class="anim-fadeUp anim-delay-3">
+    Usa direttamente nel browser · Nessuna installazione · Funziona offline · Personalizzabile · Modello adattivo
+  </p>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  FantaScienza AI 2026/27 · Assistente Intelligente per il Fantacalcio · Modello adattivo in tempo reale<br>
+  Dati: Fantacalcio.it · Gazzetta dello Sport · SOS Fanta
+</div>
+
+</body>
+</html>
