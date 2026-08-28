@@ -497,6 +497,32 @@ function scoreClass(s){return s>=92?'splus':s>=85?'sgood':s>=70?'swarn':'sbad'}
 function tier(p){if(p.score>=92)return'S+';if(p.score>=85)return'S';if(p.score>=78)return'A';if(p.score>=68)return'B';if(p.score>=55)return'C';return'D'}
 function roleIcon(r){return {P:'🧤',D:'🛡️',C:'⚙️',A:'⚽'}[r]||'•'}
 
+// Ordine delle fasce SOS Fanta dalla più forte alla più debole, con la banda di
+// punteggio AI (min-max) corrispondente. Sopra il 90 arrivano solo i TOP/SUPER TOP,
+// e al massimo i migliori SEMITOP possono toccare quota 90.
+const TIER_SCORE_BANDS={
+  'SUPER TOP':[96,99],
+  'TOP':[90,95],
+  'SEMITOP':[80,90],
+  'SOTTO SEMITOP':[74,79],
+  'FASCIA ALTA':[69,73],
+  'JOLLY 1F':[64,68],
+  'POSSIBILI SORPRESE':[59,63],
+  'FASCIA MEDIA':[54,58],
+  'INFORTUNATO':[48,53],
+  'SCOMMESSA':[43,47],
+  'SOPRA LOW COST':[38,42],
+  'JOLLY 2F':[33,37],
+  'LOW COST 1F':[28,32],
+  'LOW COST 2F':[22,27],
+  'LEGHE NUMEROSE':[16,21],
+  'JOLLY 3F':[16,21],
+  'JOLLY 4F':[10,15],
+  'MERCATO':[7,12],
+  'A RISCHIO':[4,8],
+  'DA EVITARE':[1,4]
+};
+
 function computeValuePercentiles(players){
   const byRole={};
   players.forEach(p=>{ (byRole[p.role]=byRole[p.role]||[]).push(p); });
@@ -508,13 +534,36 @@ function computeValuePercentiles(players){
     const byQa=arr.slice().sort((a,b)=>(a.qa||0)-(b.qa||0));
     byQa.forEach((p,i)=>{ p._qaPct = n<=1?100:(i/(n-1))*100; });
   });
+  // Percentile relativo ALL'INTERNO della stessa fascia (ruolo+tier2026), usata
+  // per differenziare i giocatori dentro la stessa fascia mantenendo l'ordine
+  // fascia-per-fascia imposto da TIER_SCORE_BANDS.
+  const byTierGroup={};
+  players.forEach(p=>{
+    if(!p.tier2026) return;
+    const key=p.role+'|'+p.tier2026;
+    (byTierGroup[key]=byTierGroup[key]||[]).push(p);
+  });
+  Object.keys(byTierGroup).forEach(key=>{
+    const arr=byTierGroup[key];
+    const n=arr.length;
+    const sorted=arr.slice().sort((a,b)=>((a._fvmPct*0.7+a._qaPct*0.3))-((b._fvmPct*0.7+b._qaPct*0.3)));
+    sorted.forEach((p,i)=>{ p._tierPct = n<=1?100:(i/(n-1))*100; });
+  });
 }
 
 function calcBaseScore(p){
-  // Punteggio 1-99 basato sul percentile del giocatore nel suo ruolo:
-  // 70% peso sul FVM M ufficiale (valore storico/atteso), 30% sulla quotazione
-  // corrente (qa, più sensibile a forma/mercato recente). Si auto-calibra
-  // ogni stagione senza soglie o divisori fissi da aggiornare a mano.
+  // Se il giocatore ha una fascia dalla guida asta, il punteggio AI viene
+  // vincolato dentro la banda di quella fascia (SUPER TOP > TOP > SEMITOP...),
+  // e la posizione esatta nella banda dipende dal percentile FVM M/quotazione
+  // rispetto agli altri giocatori della stessa fascia e ruolo.
+  const band=p.tier2026 && TIER_SCORE_BANDS[p.tier2026];
+  if(band){
+    const [lo,hi]=band;
+    const pct=(p._tierPct!=null?p._tierPct:50)/100;
+    return Math.round(Math.max(1,Math.min(99, lo+(hi-lo)*pct)));
+  }
+  // Fallback per chi non ha fascia (es. portieri, o giocatori non coperti dalla
+  // guida): percentile puro nel ruolo, come prima.
   const fvmPct = p._fvmPct!=null?p._fvmPct:50;
   const qaPct = p._qaPct!=null?p._qaPct:50;
   const s = 1 + (fvmPct*0.7 + qaPct*0.3)*0.98;
