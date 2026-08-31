@@ -47,14 +47,41 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)
 .config-warning{display:none;margin-bottom:16px;padding:12px;border-radius:10px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.35);color:#fcd34d;font-size:12px;line-height:1.5}
 
 .google-btn{
-  width:100%;border:1px solid var(--border);border-radius:10px;padding:12px 16px;
-  margin-top:4px;font-weight:700;font-size:14px;cursor:pointer;
-  color:var(--text);background:#fff;display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;
+  border:1px solid #3b4a78;
+  border-radius:12px;
+  padding:14px 18px;
+  margin-top:4px;
+  font-weight:800;
+  font-size:17px;
+  cursor:pointer;
+  color:#ffffff;
+  background:linear-gradient(135deg,#18233f 0%,#202d52 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.22);
+  transition:all .2s ease;
 }
-.google-btn:hover{background:#f3f4f6}
-.google-icon{
-  width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;
-  font-weight:800;font-family:Arial,sans-serif;color:#4285F4;
+.google-btn:hover{
+  background:linear-gradient(135deg,#1e2b4d 0%,#293a68 100%);
+  border-color:#53679e;
+  transform:translateY(-1px);
+  box-shadow:0 9px 22px rgba(0,0,0,.28);
+}
+.google-btn:active{transform:translateY(0)}
+.google-logo{
+  width:24px;height:24px;display:block;flex:0 0 auto;
+}
+.google-btn-text{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+.google-btn-text strong{
+  font-size:17px;color:#fff;font-weight:800;
 }
 .divider{
   display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:11px;
@@ -84,9 +111,14 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)
       <h2>Accedi al tool</h2>
       <div class="sub">Usa l'email e la password con cui ti sei registrato.</div>
 
-      <button class="google-btn" id="googleLoginBtn" type="button">
-        <span class="google-icon">G</span>
-        Continua con Google
+      <button class="google-btn" id="googleLoginBtn" type="button" aria-label="Accedi con Google">
+        <svg class="google-logo" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M21.35 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h5.23a4.47 4.47 0 0 1-1.94 2.93v2.44h3.14c1.84-1.69 2.92-4.18 2.92-7.4Z"/>
+          <path fill="#34A853" d="M12 21.75c2.63 0 4.84-.87 6.46-2.36l-3.14-2.44c-.87.58-1.98.92-3.32.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.52A9.75 9.75 0 0 0 12 21.75Z"/>
+          <path fill="#FBBC05" d="M6.54 13.84A5.87 5.87 0 0 1 6.23 12c0-.64.11-1.26.31-1.84V7.64H3.3A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.05 4.36l3.24-2.52Z"/>
+          <path fill="#EA4335" d="M12 6.13c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.83 3.23 14.62 2.25 12 2.25a9.75 9.75 0 0 0-8.7 5.39l3.24 2.52C7.31 7.85 9.46 6.13 12 6.13Z"/>
+        </svg>
+        <span class="google-btn-text"><strong>Accedi con Google</strong></span>
       </button>
       <div class="divider">oppure</div>
 
@@ -219,7 +251,7 @@ document.getElementById("googleLoginBtn").addEventListener("click", async ()=>{
   const btn = document.getElementById("googleLoginBtn");
   btn.disabled = true;
   const original = btn.innerHTML;
-  btn.innerHTML = '<span class="google-icon">G</span> Connessione a Google…';
+  btn.innerHTML = '<span style="font-weight:800">Connessione a Google…</span>';
 
   const { error } = await client.auth.signInWithOAuth({
     provider: "google",
@@ -258,3 +290,4 @@ document.getElementById("recoveryForm").addEventListener("submit",async e=>{
 </script>
 </body>
 </html>
+
