@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fanta AI 2026/27 — Assistente Asta Live</title>
+<title>FANTASCIENZA AI 2026/27 — Assistente Asta Live</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -63,7 +63,10 @@ body{
   padding:16px 22px;box-shadow:var(--shadow-sm);
 }
 .brand h1{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin:0}
-.brand h1 span{color:var(--accent)}
+.brand h1 span{color:inherit}
+.brand h1 .brand-fanta,.brand h1 .brand-ai{color:var(--text)}
+.brand h1 .brand-scienza{color:var(--accent);text-shadow:0 0 18px rgba(99,102,241,.25)}
+.brand h1 em{font-style:normal;font-size:12px;color:var(--text-muted);margin-left:6px;letter-spacing:0}
 .brand p{margin:2px 0 0;color:var(--text-secondary);font-size:12px}
 .header-actions{display:flex;gap:8px;flex-wrap:wrap}
 
@@ -279,6 +282,59 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 .target b{font-size:12px}
 .target .meta{font-size:10px;color:var(--text-muted);margin-top:1px}
 
+.strategy-target{
+  display:block;background:var(--bg);border:1px solid var(--border);
+  padding:10px 11px;border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;
+}
+.strategy-target:hover{border-color:var(--border-light);background:var(--elevated-hover);transform:translateY(-1px)}
+.strategy-target + .strategy-target{margin-top:7px}
+.strategy-target-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.strategy-target-name{font-weight:800;font-size:12px}
+.strategy-target-meta{font-size:10px;color:var(--text-muted);margin-top:2px}
+.strategy-target-reason{font-size:10px;color:var(--text-secondary);line-height:1.45;margin-top:7px}
+.strategy-target-right{text-align:right;flex-shrink:0}
+.strategy-target-score{font-size:15px;font-weight:800}
+.strategy-target-max{font-size:10px;color:var(--text-muted);margin-top:1px}
+.strategy-badge{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:999px;
+  font-size:9px;font-weight:800;letter-spacing:.02em;margin-bottom:4px;border:1px solid transparent;
+}
+.strategy-badge.now{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.28)}
+.strategy-badge.deal{background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.28)}
+.strategy-badge.watch{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.28)}
+.strategy-badge.wait{background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.28)}
+.strategy-summary{
+  margin-top:9px;padding:9px 10px;border-radius:var(--radius-sm);
+  background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.22);
+  font-size:10px;color:var(--text-secondary);line-height:1.5;
+}
+.strategy-summary b{color:#c7d2fe}
+.urgency-dots{letter-spacing:1px;font-size:9px;color:#f59e0b}
+
+.health-score-wrap{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.health-score{
+  width:66px;height:66px;border-radius:18px;display:grid;place-items:center;flex:0 0 66px;
+  background:linear-gradient(135deg,rgba(99,102,241,.16),rgba(59,130,246,.08));
+  border:1px solid rgba(99,102,241,.35);font-size:24px;font-weight:900;
+}
+.health-score.good{color:#86efac;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08)}
+.health-score.warn{color:#fcd34d;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08)}
+.health-score.bad{color:#fca5a5;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08)}
+.health-title{font-size:13px;font-weight:800}
+.health-sub{font-size:10px;color:var(--text-muted);margin-top:3px;line-height:1.45}
+.health-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
+.health-metric{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px}
+.health-metric span{display:block;color:var(--text-muted);font-size:9px;text-transform:uppercase;letter-spacing:.04em}
+.health-metric b{display:block;font-size:13px;margin-top:2px}
+.health-advice{margin-top:9px;padding:9px 10px;border-radius:9px;background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);font-size:10px;color:var(--text-secondary);line-height:1.5}
+.rank-list{display:flex;flex-direction:column;gap:6px}
+.rank-row{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:8px 9px}
+.rank-pos{font-size:12px;font-weight:900;color:var(--text-muted);text-align:center}
+.rank-main b{font-size:11px}.rank-main span{display:block;font-size:9px;color:var(--text-muted);margin-top:2px}
+.rank-score{font-size:15px;font-weight:900}
+.rank-row.mine{border-color:rgba(96,165,250,.45);background:rgba(96,165,250,.05)}
+.final-summary{margin-top:8px;padding:9px 10px;border-radius:9px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.18);font-size:10px;color:var(--text-secondary);line-height:1.45}
+
 .log-list{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow:auto;padding:2px}
 .log-item{
   display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);
@@ -357,8 +413,8 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 <div class="app">
   <div class="header">
     <div class="brand">
-      <h1>Fanta AI <span>2026/27</span></h1>
-      <p>8 squadre · 500 crediti · Assistente asta live con suggerimenti dinamici</p>
+      <h1><span class="brand-fanta">FANTA</span><span class="brand-scienza">SCIENZA</span><span class="brand-ai"> AI</span> <em>2026/27</em></h1>
+      <p>6/8/10/12 squadre · 500 crediti · Assistente asta live con suggerimenti dinamici</p>
     </div>
     <div class="header-actions">
       <button class="btn primary" id="settingsBtn">⚙️ Impostazioni</button>
@@ -369,6 +425,7 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 
   <div class="stats-bar">
     <div class="stat-card"><b id="nPlayers">0</b><span>Giocatori totali</span></div>
+    <div class="stat-card"><b id="leagueSize">8</b><span>Squadre lega</span></div>
     <div class="stat-card good"><b id="freePlayers">0</b><span>Disponibili</span></div>
     <div class="stat-card mine"><b id="myBudget">500</b><span>Budget mio</span></div>
     <div class="stat-card warn"><b id="mySpent">0</b><span>Speso</span></div>
@@ -428,8 +485,12 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 
     <div class="col-log" style="display:flex;flex-direction:column;gap:14px">
       <div class="card">
-        <div class="card-header"><h2>🎯 Prossimo obiettivo</h2><span class="tag">consigliati</span></div>
+        <div class="card-header"><h2>🎯 Strategia del momento</h2><span class="tag" id="strategyModeTag">P · reparto</span></div>
         <div class="card-body"><div id="nextTargetsList" class="targets-list"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>🧬 Salute della mia rosa</h2><span class="tag" id="healthProgress">0/25</span></div>
+        <div class="card-body"><div id="mySquadHealth"></div></div>
       </div>
       <div class="card">
         <div class="card-header"><h2>⭐ I miei target</h2><span id="targetCount" class="tag">0</span></div>
@@ -440,13 +501,17 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
         <div class="card-body"><div id="logList" class="log-list"></div></div>
       </div>
       <div class="card">
-        <div class="card-header"><h2>🏟️ Le 8 Rose</h2></div>
+        <div class="card-header"><h2>🏟️ Rose della lega</h2></div>
         <div class="card-body"><div id="squads" class="squads-grid"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>🏆 Valutazione delle rose</h2><span class="tag" id="finalReportStatus">live</span></div>
+        <div class="card-body"><div id="finalSquadReport"></div></div>
       </div>
     </div>
   </div>
 
-  <div class="footer">Listone 2026/27 — 515 giocatori · Modello decisionale personale · Dati salvati in locale</div>
+  <div class="footer">FANTASCIENZA AI 2026/27 · Leghe da 6/8/10/12 squadre · Dati salvati in locale</div>
 </div>
 
 <div id="modal" class="modal hidden"><div class="modal-box">
@@ -468,14 +533,20 @@ const ROLE_SLOTS={P:3,D:8,C:8,A:6};
 const BASE_ROLE_SHARE={P:.08,D:.15,C:.27,A:.50};
 const ROLE_COLORS={P:'#3b82f6',D:'#22c55e',C:'#f59e0b',A:'#ef4444'};
 
-const owners=Array.from({length:8},(_,i)=>({
-  id:'t'+i,
-  name:i===0?'La mia squadra':'Rivale '+i,
-  budget:500,
-  spent:0,
-  roster:[],
-  roleSpent:{P:0,D:0,C:0,A:0}
-}));
+const ALLOWED_LEAGUE_SIZES=[6,8,10,12];
+
+function makeOwners(count,budget=500,names=[]){
+  return Array.from({length:count},(_,i)=>({
+    id:'t'+i,
+    name:names[i]|| (i===0?'La mia squadra':'Rivale '+i),
+    budget,
+    spent:0,
+    roster:[],
+    roleSpent:{P:0,D:0,C:0,A:0}
+  }));
+}
+
+const owners=makeOwners(8,500);
 
 const state={
   players:EMBEDDED_PLAYERS.map(p=>({...p})),
@@ -487,6 +558,7 @@ const state={
   sortKey:'score',
   targets:new Set(),
   undoStack:[],
+  auctionMode:'role',
   marketInflation:{factor:1,n:0,pct:0,paidSum:0,expSum:0}
 };
 computeValuePercentiles(state.players);
@@ -649,18 +721,119 @@ function auctionBasePrice(p,o){
 }
 
 function marketInflation(){
+  // Inflazione generale + inflazione separata per ruolo.
+  // La card in alto continua a mostrare il dato globale, mentre i prezzi live
+  // usano soprattutto l'andamento specifico del reparto del giocatore.
   let paidSum=0, expSum=0, n=0;
+  const roles={P:{paidSum:0,expSum:0,n:0},D:{paidSum:0,expSum:0,n:0},C:{paidSum:0,expSum:0,n:0},A:{paidSum:0,expSum:0,n:0}};
   for(const o of state.owners){
     for(const x of o.roster){
       const pl=state.players.find(p=>String(p.id)===String(x.id));
       const exp=Math.max(1, pl?fvmBasePrice(pl):1);
       paidSum+=x.price; expSum+=exp; n++;
+      const role=(pl&&pl.role)||x.role;
+      if(roles[role]){
+        roles[role].paidSum+=x.price;
+        roles[role].expSum+=exp;
+        roles[role].n++;
+      }
     }
   }
-  if(n<3) return {factor:1,n,pct:0,paidSum,expSum};
-  const raw=paidSum/Math.max(1,expSum);
-  const factor=Math.max(0.65,Math.min(1.5,raw));
-  return {factor,n,pct:Math.round((raw-1)*100),paidSum,expSum};
+
+  const raw=n>=3?paidSum/Math.max(1,expSum):1;
+  const factor=n>=3?Math.max(0.65,Math.min(1.5,raw)):1;
+
+  for(const role of Object.keys(roles)){
+    const r=roles[role];
+    const roleRaw=r.n>=2?r.paidSum/Math.max(1,r.expSum):1;
+    r.factor=r.n>=2?Math.max(0.80,Math.min(1.30,roleRaw)):1;
+    r.pct=r.n>=2?Math.round((roleRaw-1)*100):0;
+  }
+
+  return {factor,n,pct:n>=3?Math.round((raw-1)*100):0,paidSum,expSum,roles};
+}
+
+function roleInflationFactor(role){
+  const mi=state.marketInflation||{};
+  const globalFactor=mi.factor||1;
+  const r=mi.roles&&mi.roles[role];
+
+  // Con almeno 2 acquisti nel ruolo: 70% inflazione del reparto + 30% globale.
+  // Prima di avere un campione sufficiente si usa il dato generale.
+  if(!r||r.n<2) return globalFactor;
+  return Math.max(0.90,Math.min(1.15,r.factor*0.70+globalFactor*0.30));
+}
+
+function leagueDepthFactor(p){
+  const n=state.owners.length;
+
+  // Il grosso dell'effetto della dimensione lega è già catturato da
+  // domanda/offerta e forza economica dei rivali. Questo correttivo è volutamente
+  // moderato e pesa soprattutto sui giocatori di profondità.
+  const tier=(p.tier2026||'').toUpperCase();
+  const score=p.score||calcBaseScore(p);
+
+  let depth='LOW';
+  if(tier==='SUPER TOP'||score>=92) depth='ELITE';
+  else if(tier==='TOP'||score>=86) depth='TOP';
+  else if(['SEMITOP','SOTTO SEMITOP','FASCIA ALTA'].includes(tier)||score>=78) depth='HIGH';
+  else if(['FASCIA MEDIA','POSSIBILI SORPRESE','JOLLY 1F','JOLLY 2F'].includes(tier)||score>=68) depth='MID';
+
+  const maps={
+    6:{ELITE:.98,TOP:.97,HIGH:.96,MID:.95,LOW:.94},
+    8:{ELITE:1,TOP:1,HIGH:1,MID:1,LOW:1},
+    10:{ELITE:1.01,TOP:1.02,HIGH:1.03,MID:1.045,LOW:1.06},
+    12:{ELITE:1.02,TOP:1.04,HIGH:1.06,MID:1.09,LOW:1.12}
+  };
+  return (maps[n]||maps[8])[depth];
+}
+
+function demandSupplyPressure(p){
+  // Domanda = slot ancora liberi, in tutte le rose, per quel ruolo.
+  const demandSlots=state.owners.reduce((sum,o)=>sum+ownerRemaining(o,p.role),0);
+
+  // Offerta = giocatori ancora liberi realmente comparabili al profilo analizzato.
+  // Include il giocatore stesso, che availableRolePlayers esclude.
+  const comparableSupply=1+availableRolePlayers(p.role,p.id)
+    .filter(x=>calcBaseScore(x)>=calcBaseScore(p)-6).length;
+
+  const ratio=demandSlots/Math.max(1,comparableSupply);
+
+  // Correttivo morbido: non deve sostituire il valore del giocatore,
+  // ma far salire il mercato quando gli slot sono molti e l'offerta si assottiglia.
+  const factor=Math.max(0.94,Math.min(1.12,1+Math.tanh((ratio-1)*0.70)*0.12));
+  return {demandSlots,comparableSupply,ratio,factor};
+}
+
+function rivalEconomicPressure(p,o,basePrice){
+  // Non conta semplicemente "quanti rivali": misura quanta capacità economica
+  // reale hanno per competere sul giocatore, tenendo conto anche degli slot residui.
+  let strength=0, credible=0;
+
+  for(const r of state.owners){
+    if(r.id===o.id||ownerRemaining(r,p.role)<=0) continue;
+
+    const reserve=ownerMinimumReserve(r,p.role,p.id);
+    const spendable=Math.max(0,r.budget-reserve);
+    if(spendable<=0) continue;
+
+    const roleFlex=roleFlexAvailable(r,p.role);
+    // Anche chi ha già superato il budget teorico di reparto può ancora concorrere,
+    // ma con una capacità ridotta rispetto a chi ha ancora margine nel reparto.
+    const effectiveBudget=Math.min(spendable,roleFlex+spendable*0.35);
+    const capacityRatio=effectiveBudget/Math.max(1,basePrice);
+    const remaining=ownerRemaining(r,p.role);
+    const slotUrgency=1/Math.max(1,remaining);
+
+    const rivalStrength=Math.max(0,Math.min(1.25,capacityRatio*0.75+slotUrgency*0.25));
+    strength+=rivalStrength;
+    if(capacityRatio>=0.75) credible++;
+  }
+
+  // 0 rivali forti -> lieve sconto; più potere economico -> premio graduale,
+  // con un tetto per evitare che il prezzo esploda.
+  const factor=Math.max(0.97,Math.min(1.08,0.97+Math.min(1,strength/4)*0.11));
+  return {strength,credible,factor};
 }
 
 // Prezzi reali osservati alle aste per alcuni centrocampisti (% del budget totale).
@@ -712,32 +885,58 @@ function fvmBasePrice(p){
 function recalcPlayer(p){
   p.score=calcBaseScore(p);const o=state.owners[0];
   let ideal = fvmBasePrice(p);
+  const basePrice=ideal;
+
   const scarcity=availableRolePlayers(p.role,p.id).filter(x=>calcBaseScore(x)>=p.score-6).length;
   const scarcityFactor=scarcity<=1?1.12:scarcity<=3?1.06:scarcity<=6?1.03:scarcity<=12?1:.97;
-  const alternativesCost=ownerMinimumReserve(o,p.role,p.id);const solvency=Math.max(1,o.budget-alternativesCost);
-  const rivalBuyers=state.owners.slice(1).filter(r=>ownerRemaining(r,p.role)>0&&ownerLiveMax(p,r)>=Math.max(1,Math.round(ideal*.92))).length;
-  const competitionFactor=rivalBuyers===0?.98:rivalBuyers===1?1:rivalBuyers===2?1.02:rivalBuyers<=4?1.05:1.08;
-  const inflationFactor=(state.marketInflation&&state.marketInflation.factor)||1;
-  ideal=Math.floor(ideal*competitionFactor*inflationFactor);
+
+  const alternativesCost=ownerMinimumReserve(o,p.role,p.id);
+  const solvency=Math.max(1,o.budget-alternativesCost);
+
+  // 1) Inflazione specifica del ruolo.
+  const inflationFactor=roleInflationFactor(p.role);
+
+  // 2) Pressione domanda/offerta basata sugli slot residui e sui pari livello liberi.
+  const ds=demandSupplyPressure(p);
+
+  // 3) Concorrenza ponderata sulla forza economica reale dei rivali.
+  const rivalPressure=rivalEconomicPressure(p,o,basePrice);
+
+  const leagueFactor=leagueDepthFactor(p);
+  ideal=Math.floor(ideal*inflationFactor*ds.factor*rivalPressure.factor*leagueFactor);
+
   const roleCap=roleCapFor(o,p.role);
   ideal=Math.min(ideal,roleCap,solvency,Math.floor(o.budget*.55));
+
   if(p.role==='A'){
-    // Per gli attaccanti il prezzo va ancorato al FVM: al massimo +12% sull'ideale
-    // e +25% sul tetto massimo, per evitare che concorrenza/scarsità/inflazione
-    // lo gonfino troppo rispetto al valore ufficiale.
+    // Mantiene invariati i tetti già presenti per gli attaccanti.
     const fvmBase=fvmBasePrice(p);
     ideal=Math.min(ideal,Math.round(fvmBase*1.12));
   }
+
   let live=Math.floor(ideal*scarcityFactor);
   live=Math.min(live,solvency,Math.floor(o.budget*.55));
+
   if(p.role==='A'){
     const fvmBase=fvmBasePrice(p);
     live=Math.min(live,Math.round(fvmBase*1.25));
   }
+
   if(ownerRemaining(o,p.role)<=0) live=0;
-  p.ideal=Math.max(1,ideal);p.liveMax=Math.max(0,live);p.targetPct=ideal/state.budget0;
-  p.scarcityCount=scarcity;p.rivalBuyers=rivalBuyers;
-  p.rolePool=state.budget0*BASE_ROLE_SHARE[p.role];p.roleLeft=Math.max(0,state.budget0*BASE_ROLE_SHARE[p.role]-(o.roleSpent[p.role]||0));
+
+  p.ideal=Math.max(1,ideal);
+  p.liveMax=Math.max(0,live);
+  p.targetPct=ideal/state.budget0;
+  p.scarcityCount=scarcity;
+  p.rivalBuyers=rivalPressure.credible;
+  p.rivalStrength=rivalPressure.strength;
+  p.demandSlots=ds.demandSlots;
+  p.comparableSupply=ds.comparableSupply;
+  p.demandSupplyRatio=ds.ratio;
+  p.roleInflationFactor=inflationFactor;
+  p.leagueDepthFactor=leagueFactor;
+  p.rolePool=state.budget0*BASE_ROLE_SHARE[p.role];
+  p.roleLeft=Math.max(0,state.budget0*BASE_ROLE_SHARE[p.role]-(o.roleSpent[p.role]||0));
   return p;
 }
 
@@ -791,60 +990,370 @@ function renderInflationStat(){
   card.title=`${label} · ${n} giocatori venduti finora: ${paidSum} crediti spesi vs ${expSum} attesi`;
 }
 
+function roleName(role){
+  return {P:'Portieri',D:'Difensori',C:'Centrocampisti',A:'Attaccanti'}[role]||role;
+}
+
+function roleCompletionGap(o,role){
+  // Quanto sei avanti/indietro rispetto alla media delle altre 7 rose.
+  const total=ROLE_SLOTS[role]||1;
+  const mine=ownerRoleCount(o,role)/total;
+  const rivals=state.owners.filter(r=>r.id!==o.id);
+  const avg=rivals.length
+    ? rivals.reduce((sum,r)=>sum+ownerRoleCount(r,role)/total,0)/rivals.length
+    : mine;
+  return mine-avg; // negativo = sei indietro rispetto alla lega
+}
+
+function detectedAuctionRole(){
+  if(state.auctionMode!=='role') return null;
+
+  // Il log è ordinato dal più recente al più vecchio.
+  // Se il log contiene già il ruolo lo usa direttamente; per i vecchi salvataggi
+  // ricava il ruolo dal nome del giocatore.
+  for(const log of state.auctionLog){
+    if(log.role && ROLE_SLOTS[log.role]) return log.role;
+    const p=state.players.find(x=>x.name===log.name);
+    if(p&&ROLE_SLOTS[p.role]) return p.role;
+  }
+
+  // Fallback per eventuali salvataggi senza log: cerca l'acquisto più recente
+  // memorizzato nelle rose. Se non c'è nessun acquisto, reparto non ancora rilevato.
+  return null;
+}
+
+function updateStrategyModeTag(){
+  const el=document.getElementById('strategyModeTag');
+  if(!el)return;
+
+  if(state.auctionMode==='role'){
+    const role=detectedAuctionRole();
+    if(role){
+      el.textContent=`${role} · ${roleName(role)}`;
+      el.title='Reparto rilevato automaticamente dagli acquisti dell’asta';
+    }else{
+      el.textContent='Auto · in attesa';
+      el.title='Il reparto verrà rilevato automaticamente dal primo acquisto';
+    }
+  }else{
+    el.textContent='Random · tutti';
+    el.title='Asta random: la strategia valuta tutti i reparti insieme';
+  }
+}
+
+function roleNeedScore(o,role){
+  const remaining=ownerRemaining(o,role);
+  const total=ROLE_SLOTS[role]||1;
+  if(remaining<=0) return 0;
+
+  const slotNeed=remaining/total;
+  const pool=rolePoolForOwner(o,role);
+  const flex=roleFlexAvailable(o,role);
+  const budgetRoom=pool>0?Math.min(1,flex/pool):0;
+
+  // Nelle aste per reparto conta anche il confronto con le altre rose:
+  // se sei indietro rispetto alla media della lega, l'urgenza aumenta;
+  // se sei già avanti, puoi permetterti maggiore pazienza.
+  if(state.auctionMode==='role'){
+    const gap=roleCompletionGap(o,role);
+    const gapPressure=Math.max(0,Math.min(1,0.50-gap));
+    return Math.max(0,Math.min(100,(slotNeed*.58+budgetRoom*.17+gapPressure*.25)*100));
+  }
+
+  // Modalità Random: mantiene la logica globale originaria.
+  return Math.max(0,Math.min(100,(slotNeed*.78+budgetRoom*.22)*100));
+}
+
+function opportunityForPlayer(p,o){
+  const live=ownerLiveMax(p,o);
+  if(live<=0) return null;
+
+  const base=Math.max(1,fvmBasePrice(p));
+  const ds=demandSupplyPressure(p);
+  const rp=rivalEconomicPressure(p,o,base);
+  const infl=roleInflationFactor(p.role);
+
+  const need=roleNeedScore(o,p.role);
+  const quality=Math.max(0,Math.min(100,p.score||calcBaseScore(p)));
+
+  // Titolarità: usa direttamente le stelle già presenti nel database.
+  const titularity=p.titStars?((p.titStars-1)/4*100):50;
+
+  // Scarsità relativa: quanto la domanda residua supera l'offerta di pari livello.
+  const scarcity=Math.max(0,Math.min(100,50+(ds.ratio-1)*35));
+
+  // Forza rivali trasformata su scala 0-100.
+  const rivalry=Math.max(0,Math.min(100,rp.strength/4*100));
+
+  // Convenienza del momento: mercato di ruolo sotto prezzo = opportunità;
+  // mercato caro = punteggio più basso. Include un piccolo premio quando
+  // il massimo live resta vicino al prezzo base osservato.
+  const marketValue=Math.max(0,Math.min(100,55+(1-infl)*180));
+  const livePremium=(live-base)/base;
+  const priceDiscipline=Math.max(0,Math.min(100,72-livePremium*90));
+  const value=Math.max(0,Math.min(100,marketValue*.60+priceDiscipline*.40));
+
+  // Opportunity Score:
+  // convenienza 30%, qualità 20%, necessità rosa 15%, scarsità 15%,
+  // forza rivali 10%, titolarità 10%.
+  const opportunity=Math.round(
+    value*.30 +
+    quality*.20 +
+    need*.15 +
+    scarcity*.15 +
+    rivalry*.10 +
+    titularity*.10
+  );
+
+  // Urgenza separata, 1-5, più immediata da leggere.
+  const urgencyRaw=need*.32+scarcity*.30+rivalry*.22+quality*.16;
+  const urgency=Math.max(1,Math.min(5,Math.ceil(urgencyRaw/20)));
+
+  let action='TIENILO D’OCCHIO',tone='watch',icon='👀';
+  if(opportunity>=82 || (urgency>=5&&quality>=78)){
+    action='AGISCI ORA';tone='now';icon='🔥';
+  }else if(value>=72 && opportunity>=66){
+    action='OCCASIONE';tone='deal';icon='💎';
+  }else if(opportunity<58 || (infl>1.08&&ds.comparableSupply>=6)){
+    action='ASPETTA';tone='wait';icon='⏸️';
+  }
+
+  const reasons=[];
+  if(ds.comparableSupply<=3) reasons.push(`solo ${ds.comparableSupply} alternative di livello`);
+  else if(ds.comparableSupply>=8) reasons.push(`${ds.comparableSupply} alternative ancora disponibili`);
+
+  if(ds.demandSlots>=ds.comparableSupply*1.5) reasons.push(`${ds.demandSlots} slot rivali/residui sul ruolo`);
+  if(rp.credible>=4) reasons.push(`${rp.credible} rivali con capacità economica`);
+  else if(rp.credible===0) reasons.push('concorrenza economica bassa');
+
+  const rolePct=Math.round((infl-1)*100);
+  if(rolePct<=-5) reasons.push(`mercato ${p.role} sotto prezzo`);
+  else if(rolePct>=7) reasons.push(`mercato ${p.role} caro`);
+
+  if(p.titStars>=5) reasons.push('titolarità alta');
+  else if(p.titStars<=2) reasons.push('titolarità da valutare');
+
+  if(state.auctionMode==='role'){
+    const gap=roleCompletionGap(o,p.role);
+    if(gap<=-0.20) reasons.push('sei indietro rispetto alle altre rose');
+    else if(gap>=0.20) reasons.push('sei avanti nel completamento del reparto');
+  }
+
+  if(need>=70) reasons.push(`ti mancano ${ownerRemaining(o,p.role)} ${p.role}`);
+
+  const reason=reasons.slice(0,2).join(' · ') || 'profilo equilibrato per valore e contesto d’asta';
+
+  return {
+    ...p,live,base,opportunity,urgency,action,tone,icon,reason,
+    need,scarcity,rivalry,value,
+    demandSlots:ds.demandSlots,comparableSupply:ds.comparableSupply,
+    credibleRivals:rp.credible,roleInflation:infl
+  };
+}
+
 function nextTargets(){
   const o=state.owners[0];
   if(!o) return [];
-  const list=[];
-  Object.keys(ROLE_SLOTS).forEach(role=>{
-    const remaining=ownerRemaining(o,role);
-    if(remaining<=0) return;
-    const fillRatio=1-(remaining/ROLE_SLOTS[role]);
-    const cands=availableRolePlayers(role,null)
-      .map(p=>({...p,live:ownerLiveMax(p,o)}))
-      .filter(p=>p.live>0)
-      .sort((a,b)=>b.score-a.score)
-      .slice(0,3);
-    cands.forEach((p,idx)=>{
-      const urgency=(1-fillRatio)*40+(p.score||0)*0.6-(idx*5);
-      list.push({...p,role,remaining,urgency});
+
+  const activeRole=state.auctionMode==='role'?detectedAuctionRole():null;
+
+  // Nell'asta per reparto non inventa il reparto iniziale:
+  // aspetta il primo acquisto e da lì segue automaticamente il ruolo in corso.
+  if(state.auctionMode==='role' && !activeRole) return [];
+
+  const candidates=state.players
+    .filter(p=>{
+      if(!playerIsFree(p.id)||ownerRemaining(o,p.role)<=0) return false;
+      if(state.auctionMode==='role' && p.role!==activeRole) return false;
+      return true;
+    })
+    .map(p=>opportunityForPlayer(p,o))
+    .filter(Boolean)
+    .sort((a,b)=>{
+      const d=b.opportunity-a.opportunity;
+      if(d!==0)return d;
+      const u=b.urgency-a.urgency;
+      if(u!==0)return u;
+      return (b.score||0)-(a.score||0);
     });
-  });
-  return list.sort((a,b)=>b.urgency-a.urgency).slice(0,5);
+
+  if(state.auctionMode==='role') return candidates.slice(0,3);
+
+  const chosen=[];
+  const byRole={};
+  for(const p of candidates){
+    if((byRole[p.role]||0)>=2) continue;
+    chosen.push(p);
+    byRole[p.role]=(byRole[p.role]||0)+1;
+    if(chosen.length>=3) break;
+  }
+  return chosen;
+}
+
+function currentStrategySummary(list){
+  const o=state.owners[0];
+  if(!o)return '';
+
+  if(state.auctionMode==='role'){
+    const role=detectedAuctionRole();
+
+    if(!role){
+      return 'In attesa del primo acquisto: il reparto verrà riconosciuto automaticamente.';
+    }
+
+    const remaining=ownerRemaining(o,role);
+
+    if(remaining<=0){
+      return `${roleName(role)} completati per la tua rosa: puoi essere molto selettivo finché il reparto resta in corso.`;
+    }
+
+    const rolePlayers=availableRolePlayers(role,null)
+      .sort((a,b)=>calcBaseScore(b)-calcBaseScore(a));
+    const probe=rolePlayers[0];
+
+    if(!probe){
+      return `Nessun ${roleName(role).toLowerCase()} disponibile per completare il reparto.`;
+    }
+
+    const ds=demandSupplyPressure(probe);
+    const infl=roleInflationFactor(role);
+    const gap=roleCompletionGap(o,role);
+
+    if(gap<=-0.20 && ds.ratio>=1.10){
+      return `Sei indietro nel reparto ${role}: aumenta la priorità. Restano ${remaining} slot tuoi e la domanda della lega è sostenuta.`;
+    }
+
+    if(gap>=0.20 && ds.comparableSupply>=5){
+      return `Sei avanti rispetto alla media nel reparto ${role}: puoi essere selettivo e aspettare il prezzo giusto.`;
+    }
+
+    if(ds.ratio>=1.50){
+      return `${roleName(role)} sotto pressione: molti slot ancora da coprire rispetto ai profili di livello rimasti.`;
+    }
+
+    if(infl>=1.09 && ds.comparableSupply>=5){
+      return `Mercato ${role} caro ma con alternative: evita rincorse e conserva budget.`;
+    }
+
+    if(infl<=0.95 && remaining>0){
+      return `Mercato ${role} favorevole: buon momento per anticipare uno degli slot ancora mancanti.`;
+    }
+
+    if(list[0]&&list[0].tone==='deal'){
+      return `${list[0].name} è la miglior occasione attuale nel reparto ${role}.`;
+    }
+
+    return `Reparto ${role}: nessuna emergenza. Segui il valore live e mantieni disciplina sui rilanci.`;
+  }
+
+  const roleStats=Object.keys(ROLE_SLOTS)
+    .filter(role=>ownerRemaining(o,role)>0)
+    .map(role=>{
+      const rolePlayers=availableRolePlayers(role,null).sort((a,b)=>calcBaseScore(b)-calcBaseScore(a));
+      const probe=rolePlayers[0];
+      if(!probe)return null;
+      const ds=demandSupplyPressure(probe);
+      const infl=roleInflationFactor(role);
+      return {role,remaining:ownerRemaining(o,role),ds,infl};
+    }).filter(Boolean);
+
+  if(!roleStats.length)return 'Rosa completa: nessuna priorità di acquisto.';
+
+  const pressured=roleStats.slice().sort((a,b)=>b.ds.ratio-a.ds.ratio)[0];
+  const expensive=roleStats.slice().sort((a,b)=>b.infl-a.infl)[0];
+
+  if(pressured&&pressured.ds.ratio>=1.5){
+    return `Priorità ${pressured.role}: domanda alta rispetto ai profili rimasti. Evita di rimandare troppo gli acquisti di qualità.`;
+  }
+
+  if(expensive&&expensive.infl>=1.09&&expensive.ds.comparableSupply>=5){
+    return `Mercato ${expensive.role} caro e con alternative disponibili: puoi aspettare e conservare budget.`;
+  }
+
+  if(list[0]&&list[0].tone==='deal'){
+    return `${list[0].name} emerge come miglior occasione del momento per rapporto tra valore, bisogno e contesto di mercato.`;
+  }
+
+  if(list[0]&&list[0].urgency>=4){
+    return `Il reparto ${list[0].role} sta diventando prioritario: monitora soprattutto i profili con alta titolarità.`;
+  }
+
+  return 'Nessuna emergenza: mantieni disciplina sui prezzi e sfrutta eventuali occasioni sotto valore.';
 }
 
 function renderNextTargets(){
+  updateStrategyModeTag();
   const el=document.getElementById('nextTargetsList');
   if(!el)return;
+
   const list=nextTargets();
-  if(!list.length){el.innerHTML='<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:10px">Nessun suggerimento al momento.<br>Rose complete o budget esaurito.</div>';return;}
-  el.innerHTML=list.map(p=>`<div class="target" onclick="openPlayer('${p.id}')">
-      <div><b>${esc(p.name)}</b><div class="meta">${esc(p.team)} · ${p.role} · mancano ${p.remaining} · AI ${p.score}</div></div>
-      <div style="text-align:right">
-        <div style="font-weight:800;font-size:13px">${p.live}</div>
-        <div style="font-size:10px;color:var(--text-muted)">max consigliato</div>
+  if(!list.length){
+    const activeRole=detectedAuctionRole();
+    const msg=state.auctionMode==='role'
+      ? (activeRole
+          ? `Nessun suggerimento per ${roleName(activeRole)}.<br>Reparto completo o nessun profilo disponibile.`
+          : 'In attesa del primo acquisto.<br>Il reparto verrà rilevato automaticamente.')
+      : 'Nessun suggerimento al momento.<br>Rosa completa o budget non disponibile.';
+    el.innerHTML=`<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:10px">${msg}</div>`;
+    return;
+  }
+
+  const rows=list.map((p,idx)=>{
+    const urgencyDots='●'.repeat(p.urgency)+'○'.repeat(5-p.urgency);
+    return `<div class="strategy-target" onclick="openPlayer('${p.id}')">
+      <div class="strategy-target-top">
+        <div>
+          <div class="strategy-badge ${p.tone}">${p.icon} ${p.action}</div>
+          <div class="strategy-target-name">${idx+1}. ${esc(p.name)}</div>
+          <div class="strategy-target-meta">${esc(p.team)} · ${p.role} · AI ${p.score} · Tit. ${p.titStars||'—'}★</div>
+        </div>
+        <div class="strategy-target-right">
+          <div class="strategy-target-score">${p.opportunity}</div>
+          <div class="strategy-target-max">Opportunity</div>
+          <div style="font-size:10px;margin-top:4px"><b>${p.live}</b> max</div>
+        </div>
       </div>
-    </div>`).join('');
+      <div class="strategy-target-reason">${esc(p.reason)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+        <span class="urgency-dots" title="Urgenza ${p.urgency}/5">${urgencyDots}</span>
+        <span style="font-size:9px;color:var(--text-muted)">urgenza ${p.urgency}/5</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const summary=currentStrategySummary(list);
+  el.innerHTML=rows+`<div class="strategy-summary"><b>Indicazione generale:</b> ${esc(summary)}</div>`;
 }
 function ownerLabel(id){const o=state.owners.find(x=>x.id===id);return o?o.name:'Libero'}
 
 function ownerLiveMax(p,o){
   if(!o||ownerRemaining(o,p.role)<=0)return 0;
-  let ideal = fvmBasePrice(p);
-  const scarcity=availableRolePlayers(p.role,p.id).filter(x=>calcBaseScore(x)>=p.score-6).length;
+
+  let ideal=fvmBasePrice(p);
+  const basePrice=ideal;
+
+  const scarcity=availableRolePlayers(p.role,p.id).filter(x=>calcBaseScore(x)>=calcBaseScore(p)-6).length;
   const sf=scarcity<=1?1.12:scarcity<=3?1.06:scarcity<=6?1.03:scarcity<=12?1:.97;
-  const rivals=state.owners.filter(r=>r.id!==o.id&&ownerRemaining(r,p.role)>0&&roleFlexAvailable(r,p.role)>0).length;
-  const cf=rivals>=4?1.05:rivals>=2?1.02:rivals===1?1:.98;
+
   const reserve=ownerMinimumReserve(o,p.role,p.id);
   const solvency=Math.max(1,o.budget-reserve);
-  const inflationFactor=(state.marketInflation&&state.marketInflation.factor)||1;
-  ideal=Math.floor(ideal*cf*inflationFactor);
+
+  const inflationFactor=roleInflationFactor(p.role);
+  const ds=demandSupplyPressure(p);
+  const rivalPressure=rivalEconomicPressure(p,o,basePrice);
+
+  const leagueFactor=leagueDepthFactor(p);
+  ideal=Math.floor(ideal*inflationFactor*ds.factor*rivalPressure.factor*leagueFactor);
+
   let live=Math.floor(ideal*sf);
   const roleCap=roleCapFor(o,p.role);
   live=Math.min(live,roleCap,solvency,Math.floor(o.budget*.55));
+
   if(p.role==='A'){
     const fvmBase=fvmBasePrice(p);
     live=Math.min(live,Math.round(fvmBase*1.25));
   }
+
   return Math.max(0,live);
 }
 
@@ -858,7 +1367,7 @@ function auctionStrategy(p,o=state.owners[0],currentPrice=null){
   let goodHigh=Math.min(max,Math.max(ideal+1,Math.floor(ideal+spread*.45)));
   let scarcityLow=Math.min(max,Math.max(goodHigh+1,Math.ceil(max*.94)));
   if(max<=ideal){buyLow=Math.max(1,Math.floor(max*.93));buyHigh=max;goodHigh=max;scarcityLow=max;}
-  const rivals=state.owners.filter(r=>r.id!==o.id&&ownerRemaining(r,p.role)>0&&ownerLiveMax(p,r)>=Math.max(1,Math.round(ideal*.92))).length;
+  const rivals=rivalEconomicPressure(p,o,fvmBasePrice(p)).credible;
 
   let label='COMPRALO',tone='good',zone='buy';
   const price=currentPrice!==null?currentPrice:buyHigh;
@@ -956,6 +1465,7 @@ function filtered(){
 
 function render(){
   document.getElementById('nPlayers').textContent=state.players.length;
+  const leagueSizeEl=document.getElementById('leagueSize');if(leagueSizeEl)leagueSizeEl.textContent=state.owners.length;
   document.getElementById('freePlayers').textContent=state.players.filter(p=>playerIsFree(p.id)).length;
   const me=state.owners[0];
   document.getElementById('myBudget').textContent=me.budget;
@@ -993,6 +1503,8 @@ function render(){
   renderSquads();
   renderTargets();
   renderLog();
+  renderMySquadHealth();
+  renderFinalSquadReport();
 }
 
 function openPlayer(id){
@@ -1035,7 +1547,12 @@ function openPlayer(id){
     <div class="metric"><div class="label">Quotazione / FVM</div><div class="value small">${p.qa} / ${p.fvm}</div><div class="hint">Listone 2026/27</div></div>
   </div>
 
-  ${!playerIsFree(p.id)?`<div style="padding:14px;text-align:center;color:var(--text-secondary)">Giocatore già assegnato a <b>${esc(owner)}</b>.<br>Puoi renderlo disponibile con il pulsante sotto.</div>`:`
+  ${!playerIsFree(p.id)?`
+  <div style="padding:14px;text-align:center;color:var(--text-secondary)">Giocatore già assegnato a <b>${esc(owner)}</b>.</div>
+  <div class="action-row" style="padding-top:0">
+    <button class="btn danger" onclick="setFree()">♻️ Rendi disponibile</button>
+  </div>
+  `:`
   <div class="auction-zone">
     <div class="auction-label">
       <span class="title">💰 Prezzo asta live</span>
@@ -1168,7 +1685,7 @@ function assignSelected(){
   o.roster.push({id:p.id,name:p.name,team:p.team,role:p.role,price});
   state.undoStack.push({playerId:p.id,ownerId:o.id,price,role:p.role});
   if(state.undoStack.length>20) state.undoStack.shift();
-  addLog(p.name,price,o.name,oid==='t0');
+  addLog(p.name,price,o.name,oid==='t0',p.role);
   save();recalcAll();openPlayer(p.id);
   toast(`${esc(p.name)} → ${esc(o.name)} a ${price} cr`, oid==='t0'?'good':'info');
 }
@@ -1223,10 +1740,273 @@ function renderSquads(){
   }).join('');
 }
 
-function addLog(name,price,owner,isMine){
+
+function ownerPlayerDetails(o){
+  return o.roster.map(x=>{
+    const p=state.players.find(pl=>String(pl.id)===String(x.id));
+    return p?{...p,paid:x.price}:{...x,score:50,titStars:3,tier2026:null};
+  });
+}
+
+
+function goalkeeperCoverage(o){
+  const keepers=ownerPlayerDetails(o).filter(p=>p.role==='P');
+  if(!keepers.length){
+    return {score:0,covered:false,main:null,backups:[],effectivePlayers:[],team:null,count:0};
+  }
+
+  const groups={};
+  for(const p of keepers){
+    (groups[p.team]=groups[p.team]||[]).push(p);
+  }
+
+  const rankedGroups=Object.entries(groups).map(([team,arr])=>{
+    const sorted=arr.slice().sort((a,b)=>{
+      const sa=(a.titStars||1)*20+(a.score||calcBaseScore(a)||0);
+      const sb=(b.titStars||1)*20+(b.score||calcBaseScore(b)||0);
+      return sb-sa;
+    });
+    const main=sorted[0];
+    const backups=sorted.slice(1);
+    const coverageBonus=Math.min(18,backups.length*9);
+    const mainQuality=main.score||calcBaseScore(main)||50;
+    const mainTit=((main.titStars||3)-1)/4*100;
+    const groupScore=Math.max(0,Math.min(100,mainQuality*.55+mainTit*.35+coverageBonus));
+    return {team,arr:sorted,main,backups,groupScore};
+  }).sort((a,b)=>{
+    if(b.arr.length!==a.arr.length) return b.arr.length-a.arr.length;
+    return b.groupScore-a.groupScore;
+  });
+
+  const best=rankedGroups[0];
+  const covered=best.arr.length>=2;
+
+  // I backup della stessa squadra del portiere principale valgono come copertura:
+  // non entrano nelle medie con il loro basso AI/titolarità.
+  const effectivePlayers=[];
+  for(const g of rankedGroups){
+    if(g.team===best.team){
+      effectivePlayers.push(g.main);
+    }else{
+      effectivePlayers.push(...g.arr);
+    }
+  }
+
+  return {
+    score:best.groupScore,
+    covered,
+    main:best.main,
+    backups:best.backups,
+    effectivePlayers,
+    team:best.team,
+    count:best.arr.length
+  };
+}
+
+function squadAnalysis(o){
+  const allPlayers=ownerPlayerDetails(o);
+  const totalSlots=Object.values(ROLE_SLOTS).reduce((a,b)=>a+b,0);
+  const completion=Math.max(0,Math.min(1,o.roster.length/totalSlots));
+
+  if(!allPlayers.length){
+    return {
+      score:0,rawScore:0,completion,quality:0,titularity:0,balance:0,budget:100,
+      risk:'—',riskCount:0,avgStars:0,complete:false,
+      advice:'Nessun giocatore acquistato: valutazione non ancora disponibile.',
+      keeperCoverage:null
+    };
+  }
+
+  const keeperCoverage=goalkeeperCoverage(o);
+  const nonKeepers=allPlayers.filter(p=>p.role!=='P');
+
+  // Per la qualità, un blocco di portieri della stessa squadra vale come un'unica "porta".
+  // I secondi/terzi a 1 non abbassano la media del reparto.
+  const qualityPlayers=[
+    ...nonKeepers,
+    ...keeperCoverage.effectivePlayers
+  ];
+
+  const quality=Math.round(
+    qualityPlayers.reduce((s,p)=>s+(p.score||calcBaseScore(p)||50),0) /
+    Math.max(1,qualityPlayers.length)
+  );
+
+  const nonKeeperStars=nonKeepers.map(p=>p.titStars||3);
+  let avgStars;
+
+  if(keeperCoverage.main){
+    const keeperEquivalentStars=keeperCoverage.covered
+      ? Math.max(4.5,keeperCoverage.main.titStars||4)
+      : (keeperCoverage.main.titStars||3);
+
+    avgStars=(
+      nonKeeperStars.reduce((s,x)=>s+x,0)+keeperEquivalentStars
+    )/Math.max(1,nonKeeperStars.length+1);
+  }else{
+    avgStars=nonKeeperStars.reduce((s,x)=>s+x,0)/Math.max(1,nonKeeperStars.length);
+  }
+
+  const titularity=Math.round(((avgStars-1)/4)*100);
+
+  // Backup della stessa squadra del portiere principale: non sono profili rischiosi.
+  const riskPlayers=allPlayers.filter(p=>{
+    if(
+      p.role==='P' &&
+      keeperCoverage.covered &&
+      p.team===keeperCoverage.team &&
+      String(p.id)!==String(keeperCoverage.main.id)
+    ){
+      return false;
+    }
+
+    return (p.titStars||3)<=2 ||
+      ['A RISCHIO','INFORTUNATO','MERCATO','DA EVITARE'].includes(p.tier2026);
+  });
+
+  const riskCount=riskPlayers.length;
+  const riskRatio=riskCount/Math.max(1,allPlayers.length);
+  const risk=riskRatio>=.30?'ALTO':riskRatio>=.15?'MEDIO':'BASSO';
+
+  const roleProgress=Object.keys(ROLE_SLOTS).map(r=>ownerRoleCount(o,r)/ROLE_SLOTS[r]);
+  const avgProgress=roleProgress.reduce((a,b)=>a+b,0)/roleProgress.length;
+  const variance=roleProgress.reduce((s,x)=>s+Math.pow(x-avgProgress,2),0)/roleProgress.length;
+  const balance=Math.round(Math.max(0,Math.min(100,100-Math.sqrt(variance)*115)));
+
+  const missing=totalSlots-o.roster.length;
+  const reserveSafety=missing<=0?1:Math.max(0,Math.min(1,(o.budget-missing)/Math.max(1,state.budget0*.25)));
+
+  let overrun=0;
+  for(const r of Object.keys(ROLE_SLOTS)){
+    const target=state.budget0*BASE_ROLE_SHARE[r];
+    const spent=o.roleSpent[r]||0;
+    if(spent>target*1.15) overrun+=(spent-target*1.15);
+  }
+
+  const overrunPenalty=Math.min(45,overrun/Math.max(1,state.budget0)*180);
+  const budget=Math.round(Math.max(0,Math.min(100,55+reserveSafety*45-overrunPenalty)));
+
+  // Premio contenuto alla copertura della porta.
+  const keeperBonus=keeperCoverage.covered?4:0;
+
+  const rawScore=Math.round(Math.min(100,
+    quality*.35 +
+    titularity*.25 +
+    balance*.20 +
+    budget*.20 +
+    keeperBonus
+  ));
+
+  const score=Math.round(rawScore*(.78+.22*completion));
+  const complete=o.roster.length>=totalSlots;
+
+  let advice='';
+  if(keeperCoverage.covered && keeperCoverage.backups.length){
+    advice=`🧤 Porta coperta: ${keeperCoverage.main.name} + ${keeperCoverage.backups.length} riserva${keeperCoverage.backups.length>1?'e':''} della stessa squadra. I backup non penalizzano qualità e titolarità.`;
+  }else if(risk==='ALTO'){
+    advice=`⚠️ Rischio alto: ${riskCount} profili hanno titolarità bassa o fascia rischiosa. Privilegia giocatori più affidabili nei prossimi slot.`;
+  }else if(avgStars<3.6){
+    advice='⚠️ Titolarità media migliorabile: cerca almeno un profilo da 4-5★ nel prossimo acquisto.';
+  }else if(budget<55){
+    advice='⚠️ Budget sotto pressione: evita sovrapprezzi e proteggi i crediti necessari per completare la rosa.';
+  }else if(balance<60){
+    advice='⚠️ Rosa ancora sbilanciata tra reparti: concentra i prossimi acquisti sugli slot meno coperti.';
+  }else if(quality>=82&&avgStars>=4.1){
+    advice='✅ Rosa di qualità e affidabile: puoi permetterti una scommessa controllata negli ultimi slot.';
+  }else{
+    advice='✅ Costruzione equilibrata: continua a seguire valore live, titolarità e disciplina sul budget.';
+  }
+
+  return {
+    score,rawScore,completion,quality,titularity,balance,budget,
+    risk,riskCount,avgStars,complete,advice,keeperCoverage
+  };
+}
+
+function renderMySquadHealth(){
+  const el=document.getElementById('mySquadHealth');
+  const tag=document.getElementById('healthProgress');
+  if(!el||!tag)return;
+
+  const o=state.owners[0];
+  const a=squadAnalysis(o);
+  const total=Object.values(ROLE_SLOTS).reduce((x,y)=>x+y,0);
+  tag.textContent=`${o.roster.length}/${total}`;
+
+  if(!o.roster.length){
+    el.innerHTML='<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:12px">La salute della rosa apparirà dopo il primo acquisto.</div>';
+    return;
+  }
+
+  const cls=a.score>=80?'good':a.score>=65?'warn':'bad';
+  const status=a.complete?'VALUTAZIONE FINALE':'VALUTAZIONE PROVVISORIA';
+
+  el.innerHTML=`
+    <div class="health-score-wrap">
+      <div class="health-score ${cls}">${a.score}</div>
+      <div>
+        <div class="health-title">${status}</div>
+        <div class="health-sub">Score complessivo su qualità, titolarità, equilibrio e gestione budget.</div>
+      </div>
+    </div>
+    <div class="health-grid">
+      <div class="health-metric"><span>Qualità</span><b>${a.quality}/100</b></div>
+      <div class="health-metric"><span>Titolarità</span><b>${a.avgStars.toFixed(1)}★</b></div>
+      <div class="health-metric"><span>Equilibrio</span><b>${a.balance}/100</b></div>
+      <div class="health-metric"><span>Budget</span><b>${a.budget}/100</b></div>
+      <div class="health-metric"><span>Rischio</span><b style="color:${a.risk==='ALTO'?'#fca5a5':a.risk==='MEDIO'?'#fcd34d':'#86efac'}">${a.risk}</b></div>
+      <div class="health-metric"><span>Profili rischiosi</span><b>${a.riskCount}</b></div>
+      <div class="health-metric"><span>Copertura porta</span><b>${a.keeperCoverage?.covered?'COPERTA':'DA VALUTARE'}</b></div>
+      <div class="health-metric"><span>Blocco portieri</span><b>${a.keeperCoverage?.covered?`${a.keeperCoverage.count} ${a.keeperCoverage.team}`:'—'}</b></div>
+    </div>
+    <div class="health-advice">${a.advice}</div>
+  `;
+}
+
+function renderFinalSquadReport(){
+  const el=document.getElementById('finalSquadReport');
+  const status=document.getElementById('finalReportStatus');
+  if(!el||!status)return;
+
+  const total=Object.values(ROLE_SLOTS).reduce((x,y)=>x+y,0);
+  const rows=state.owners.map(o=>({o,a:squadAnalysis(o)}));
+  const completed=rows.filter(x=>x.o.roster.length>=total).length;
+  const allComplete=completed===state.owners.length;
+  status.textContent=allComplete?'finale':`${completed}/${state.owners.length} complete`;
+
+  const ranked=rows.slice().sort((x,y)=>{
+    const ds=y.a.score-x.a.score;
+    if(ds!==0)return ds;
+    return y.a.quality-x.a.quality;
+  });
+
+  const htmlRows=ranked.map((x,i)=>{
+    const mine=x.o.id==='t0';
+    const progress=`${x.o.roster.length}/${total}`;
+    const label=x.a.complete?'completa':`in corso ${progress}`;
+    return `<div class="rank-row ${mine?'mine':''}">
+      <div class="rank-pos">${i+1}</div>
+      <div class="rank-main"><b>${esc(x.o.name)}</b><span>${label} · Qualità ${x.a.quality} · Tit. ${x.a.avgStars.toFixed(1)}★ · Rischio ${x.a.risk}</span></div>
+      <div class="rank-score ${scoreClass(x.a.score)}">${x.a.score}</div>
+    </div>`;
+  }).join('');
+
+  let summary='';
+  if(allComplete){
+    const winner=ranked[0];
+    const minePos=ranked.findIndex(x=>x.o.id==='t0')+1;
+    summary=`🏆 Miglior rosa secondo il modello: <b>${esc(winner.o.name)}</b> (${winner.a.score}/100). La tua rosa è ${minePos}ª su ${state.owners.length} con score ${squadAnalysis(state.owners[0]).score}/100.`;
+  }else{
+    summary='Classifica provvisoria: lo score tiene conto anche del grado di completamento. La valutazione diventa definitiva quando tutte le rose raggiungono 25 giocatori.';
+  }
+
+  el.innerHTML=`<div class="rank-list">${htmlRows}</div><div class="final-summary">${summary}</div>`;
+}
+
+function addLog(name,price,owner,isMine,role){
   const now=new Date();
   const time=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-  state.auctionLog.unshift({time,name,price,owner,isMine});
+  state.auctionLog.unshift({time,name,price,owner,isMine,role});
   if(state.auctionLog.length>50) state.auctionLog.pop();
   renderLog();
 }
@@ -1263,56 +2043,182 @@ function fillTeams(){
   el.innerHTML='<option value="">Tutte le squadre</option>'+teams.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
 }
 
-function save(){localStorage.setItem('fanta8_state_v4',JSON.stringify({budget0:state.budget0,owners:state.owners,auctionLog:state.auctionLog,targets:[...state.targets]}))}
+function save(){
+  localStorage.setItem('fanta8_state_v4',JSON.stringify({
+    budget0:state.budget0,
+    participantCount:state.owners.length,
+    owners:state.owners,
+    auctionLog:state.auctionLog,
+    targets:[...state.targets],
+    auctionMode:state.auctionMode
+  }));
+}
 function load(){
   try{
     const s=JSON.parse(localStorage.getItem('fanta8_state_v4')||'null');
-    if(s&&Array.isArray(s.owners)&&s.owners.length===8){
+    if(s&&Array.isArray(s.owners)&&ALLOWED_LEAGUE_SIZES.includes(s.owners.length)){
       state.budget0=Number(s.budget0)||500;
       state.owners.splice(0,state.owners.length,...s.owners);
       if(s.auctionLog) state.auctionLog=s.auctionLog;
       if(Array.isArray(s.targets)) s.targets.forEach(id=>state.targets.add(String(id)));
+      state.auctionMode=s.auctionMode==='random'?'random':'role';
     }
   }catch(e){}
 }
 
+function settingsTeamFields(count,names=[]){
+  const safeCount=ALLOWED_LEAGUE_SIZES.includes(Number(count))?Number(count):8;
+  return Array.from({length:safeCount},(_,i)=>{
+    const current=names[i] || state.owners[i]?.name || (i===0?'La mia squadra':'Rivale '+i);
+    return `<label><span class="small" style="color:var(--text-secondary)">${i===0?'La tua squadra':'Rivale '+i}</span><input class="field squadName" data-i="${i}" value="${esc(current)}" style="margin-top:4px"></label>`;
+  }).join('');
+}
+
+function updateParticipantFields(){
+  const select=document.getElementById('setParticipants');
+  const box=document.getElementById('teamNamesSettings');
+  if(!select||!box)return;
+  const names=[...document.querySelectorAll('.squadName')].map(x=>x.value.trim());
+  box.innerHTML=settingsTeamFields(Number(select.value),names);
+}
+
 function settings(){
-  const html=`<div class="help-box">Il modello usa 500 crediti di default e 8 rose. Slot: P 3, D 8, C 8, A 6. Budget reparto: P 8%, D 15%, C 27%, A 50%. Puoi rinominare le squadre e impostare il budget iniziale.</div>
+  const html=`<div class="help-box">Configura la tua lega. Il numero di partecipanti modifica automaticamente domanda/offerta, profondità del listone, concorrenza, Strategia del momento e confronto finale delle rose. Slot per squadra: P 3, D 8, C 8, A 6.</div>
   <div style="margin:14px 0;height:1px;background:var(--border)"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+    <label>
+      <span class="small" style="color:var(--text-secondary)">Tipo di asta</span>
+      <select id="setAuctionMode" class="field" style="margin-top:4px">
+        <option value="role" ${state.auctionMode==='role'?'selected':''}>Per reparto</option>
+        <option value="random" ${state.auctionMode==='random'?'selected':''}>Random / reparti mischiati</option>
+      </select>
+    </label>
+
+    <label>
+      <span class="small" style="color:var(--text-secondary)">Numero partecipanti</span>
+      <select id="setParticipants" class="field" style="margin-top:4px" onchange="updateParticipantFields()">
+        ${ALLOWED_LEAGUE_SIZES.map(n=>`<option value="${n}" ${state.owners.length===n?'selected':''}>${n} squadre</option>`).join('')}
+      </select>
+    </label>
+  </div>
+
   <label style="display:block;margin-bottom:10px"><span class="small" style="color:var(--text-secondary)">Budget iniziale per squadra</span><input id="setBudget" class="field" type="number" min="100" value="${state.budget0}" style="margin-top:4px"></label>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">${state.owners.map((o,i)=>`<label><span class="small" style="color:var(--text-secondary)">${i===0?'La tua squadra':'Rivale '+i}</span><input class="field squadName" data-i="${i}" value="${esc(o.name)}" style="margin-top:4px"></label>`).join('')}</div>
+
+  <div id="teamNamesSettings" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+    ${settingsTeamFields(state.owners.length)}
+  </div>
+
   <button class="btn primary" onclick="applySettings()" style="width:100%">Salva impostazioni</button>`;
   document.getElementById('modalContent').innerHTML=html;
   document.getElementById('modal').classList.remove('hidden');
 }
 
+
 function applySettings(){
   const b=Number(document.getElementById('setBudget').value);
   if(!Number.isFinite(b)||b<100)return toast('Budget non valido','warn');
-  const names=[...document.querySelectorAll('.squadName')].map(x=>x.value.trim()||'Squadra');
+
+  const participantCount=Number(document.getElementById('setParticipants')?.value||8);
+  if(!ALLOWED_LEAGUE_SIZES.includes(participantCount))return toast('Numero partecipanti non valido','warn');
+
+  const names=[...document.querySelectorAll('.squadName')].map((x,i)=>x.value.trim()||(i===0?'La mia squadra':'Rivale '+i));
+  const mode=document.getElementById('setAuctionMode')?.value==='random'?'random':'role';
+  const participantChanged=participantCount!==state.owners.length;
+  const auctionStarted=state.auctionLog.length>0 || state.owners.some(o=>o.roster.length>0);
+
+  if(participantChanged && auctionStarted){
+    const ok=confirm(`Cambiare da ${state.owners.length} a ${participantCount} partecipanti modifica prezzi, domanda/offerta e concorrenza. Per applicare la modifica è necessario azzerare l'asta corrente. Continuare?`);
+    if(!ok)return;
+  }
+
   state.budget0=b;
-  state.owners.forEach((o,i)=>{o.budget=b-o.spent;o.name=names[i]||o.name;});
-  save();document.getElementById('modal').classList.add('hidden');recalcAll();toast('Impostazioni salvate','good');
+  state.auctionMode=mode;
+
+  if(participantChanged){
+    const rebuilt=makeOwners(participantCount,b,names);
+    state.owners.splice(0,state.owners.length,...rebuilt);
+    state.selected=null;
+    state.auctionLog=[];
+    state.targets.clear();
+    state.undoStack=[];
+    state.marketInflation={factor:1,n:0,pct:0,paidSum:0,expSum:0,roles:{}};
+  }else{
+    state.owners.forEach((o,i)=>{
+      o.name=names[i]||o.name;
+      // Se il budget iniziale cambia prima/durante l'asta, preserva la spesa reale.
+      o.budget=Math.max(0,b-o.spent);
+    });
+  }
+
+  save();
+  document.getElementById('modal').classList.add('hidden');
+  recalcAll();
+
+  toast(
+    participantChanged
+      ? `Lega configurata a ${participantCount} squadre · asta azzerata`
+      : `Impostazioni salvate · ${participantCount} squadre`,
+    participantChanged?'info':'good'
+  );
 }
 
 function exportState(){
-  const data={season:'2026/27',budget0:state.budget0,owners:state.owners,playersCount:state.players.length,auctionLog:state.auctionLog,exportedAt:new Date().toISOString()};
+  const data={season:'2026/27',budget0:state.budget0,auctionMode:state.auctionMode,owners:state.owners,playersCount:state.players.length,auctionLog:state.auctionLog,exportedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fanta_ai_asta_2026_27.json';a.click();URL.revokeObjectURL(a.href);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fantascienza_ai_asta_2026_27.json';a.click();URL.revokeObjectURL(a.href);
   toast('Stato esportato','good');
 }
 
 function resetAll(){
-  if(!confirm('Cancellare TUTTI gli acquisti e riportare il budget a quello iniziale?'))return;
-  state.owners.forEach((o,i)=>{o.budget=state.budget0;o.spent=0;o.roster=[];o.roleSpent={P:0,D:0,C:0,A:0};o.name=i===0?'La mia squadra':'Rivale '+i});
-  state.selected=null;state.auctionLog=[];state.targets.clear();state.undoStack=[];
-  save();recalcAll();
+  if(!confirm('Cancellare TUTTI gli acquisti e riportare l’asta allo stato iniziale?'))return;
+
+  const savedNames=state.owners.map((o,i)=>o.name||(i===0?'La mia squadra':'Rivale '+i));
+  const savedMode=state.auctionMode==='random'?'random':'role';
+  const savedBudget=state.budget0;
+
+  state.owners.forEach((o,i)=>{
+    o.budget=savedBudget;
+    o.spent=0;
+    o.roster=[];
+    o.roleSpent={P:0,D:0,C:0,A:0};
+    o.name=savedNames[i];
+  });
+
+  state.selected=null;
+  state.auctionLog=[];
+  state.targets.clear();
+  state.undoStack=[];
+  state.marketInflation={factor:1,n:0,pct:0,paidSum:0,expSum:0,roles:{}};
+  state.auctionMode=savedMode;
+
+  // Elimina prima lo stato precedente per evitare che un vecchio salvataggio
+  // venga ricaricato dopo un reset incompleto.
+  localStorage.removeItem('fanta8_state_v4');
+  save();
+
+  // Ripristina anche filtri e ordinamento dell'interfaccia.
+  const q=document.getElementById('q'); if(q)q.value='';
+  const role=document.getElementById('role'); if(role)role.value='';
+  const team=document.getElementById('team'); if(team)team.value='';
+  const sort=document.getElementById('sort'); if(sort)sort.value='score';
+  state.sortKey='score';
+  state.lastFilter='';
+
+  recalcAll();
+  renderLog();
+  renderSquads();
+  renderTargets();
+  updateStrategyModeTag();
+
   document.getElementById('focusPanel').innerHTML=`<div style="padding:40px 20px;text-align:center;color:var(--text-muted)"><div style="font-size:32px;margin-bottom:10px">👆</div><div style="font-size:13px;font-weight:600">Seleziona un giocatore dal listone</div><div style="font-size:11px;margin-top:4px">Vedrai prezzo consigliato, massimo live e suggerimenti tattici</div></div>`;
-  document.getElementById('selOwner').textContent='libero';document.getElementById('selOwner').className='tag';
-  toast('Asta resettata','info');
+  document.getElementById('selOwner').textContent='libero';
+  document.getElementById('selOwner').className='tag';
+
+  toast('Asta completamente resettata','info');
 }
 
-window.openPlayer=openPlayer;window.assignSelected=assignSelected;window.setFree=setFree;window.applySettings=applySettings;window.clearLog=clearLog;window.toggleTarget=toggleTarget;window.isTarget=isTarget;window.undoLast=undoLast;
+window.openPlayer=openPlayer;window.assignSelected=assignSelected;window.setFree=setFree;window.applySettings=applySettings;window.updateParticipantFields=updateParticipantFields;window.clearLog=clearLog;window.toggleTarget=toggleTarget;window.isTarget=isTarget;window.undoLast=undoLast;
 document.getElementById('settingsBtn').onclick=settings;
 document.getElementById('closeModal').onclick=()=>document.getElementById('modal').classList.add('hidden');
 document.getElementById('closeGuideModal').onclick=()=>document.getElementById('guideModal').classList.add('hidden');
