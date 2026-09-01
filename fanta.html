@@ -1803,6 +1803,304 @@ function goalkeeperCoverage(o){
   };
 }
 
+
+
+const COMMON_FORMATIONS=[
+  {name:'3-4-3',D:3,C:4,A:3},
+  {name:'3-5-2',D:3,C:5,A:2},
+  {name:'4-3-3',D:4,C:3,A:3},
+  {name:'4-4-2',D:4,C:4,A:2},
+  {name:'4-5-1',D:4,C:5,A:1},
+  {name:'5-3-2',D:5,C:3,A:2},
+  {name:'5-4-1',D:5,C:4,A:1}
+];
+
+function playerLineupValue(p){
+  const score=p.score||calcBaseScore(p)||50;
+  const stars=p.titStars||3;
+  // Il valore da formazione premia qualità e affidabilità.
+  return Math.max(1,Math.min(100,score+(stars-3)*3));
+}
+
+function squadLineupProfile(o){
+  const details=ownerPlayerDetails(o);
+  const keeperCov=goalkeeperCoverage(o);
+
+  const byRole={D:[],C:[],A:[]};
+  for(const r of ['D','C','A']){
+    byRole[r]=details
+      .filter(p=>p.role===r)
+      .slice()
+      .sort((a,b)=>playerLineupValue(b)-playerLineupValue(a));
+  }
+
+  // Porta: il blocco coperto vale come un solo slot titolare affidabile.
+  let keeperValue=0;
+  let keeperStars=0;
+  if(keeperCov.main){
+    keeperValue=Math.min(100,playerLineupValue(keeperCov.main)+(keeperCov.covered?5:0));
+    keeperStars=keeperCov.covered?Math.max(4.5,keeperCov.main.titStars||4):(keeperCov.main.titStars||3);
+  }
+
+  const feasible=COMMON_FORMATIONS.filter(f=>
+    byRole.D.length>=f.D &&
+    byRole.C.length>=f.C &&
+    byRole.A.length>=f.A &&
+    keeperCov.main
+  );
+
+  // Durante l'asta, se non esiste ancora una formazione completa, usa quella
+  // più vicina alla rosa attuale senza penalizzare i reparti non ancora iniziati.
+  const candidates=feasible.length?feasible:COMMON_FORMATIONS;
+
+  let best=null;
+
+  for(const f of candidates){
+    let starterVals=[];
+    let starterStars=[];
+    let roleStarter={P:[],D:[],C:[],A:[]};
+
+    if(keeperCov.main){
+      starterVals.push(keeperValue);
+      starterStars.push(keeperStars);
+      roleStarter.P=[keeperCov.main];
+    }
+
+    let missing=keeperCov.main?0:1;
+
+    for(const r of ['D','C','A']){
+      const chosen=byRole[r].slice(0,f[r]);
+      roleStarter[r]=chosen;
+      starterVals.push(...chosen.map(playerLineupValue));
+      starterStars.push(...chosen.map(p=>p.titStars||3));
+      missing+=Math.max(0,f[r]-chosen.length);
+    }
+
+    const starterAvg=starterVals.length
+      ? starterVals.reduce((a,b)=>a+b,0)/starterVals.length
+      : 0;
+
+    const starterTit=starterStars.length
+      ? starterStars.reduce((a,b)=>a+b,0)/starterStars.length
+      : 0;
+
+    // Penalità solo per slot mancanti nella formazione scelta, non per tutta la panchina.
+    const completionPenalty=missing*5;
+    const formationScore=starterAvg + (starterTit-3)*2 - completionPenalty;
+
+    if(!best || formationScore>best.formationScore){
+      best={formation:f,formationScore,starterAvg,starterTit,missing,roleStarter};
+    }
+  }
+
+  const usedIds=new Set();
+  if(best){
+    for(const r of ['P','D','C','A']){
+      for(const p of best.roleStarter[r]||[]) usedIds.add(String(p.id));
+    }
+  }
+
+  const bench=details.filter(p=>!usedIds.has(String(p.id)));
+
+  // La profondità misura la qualità delle prime alternative, non la media di tutta la panchina.
+  // Così gli ultimi slot a 1 credito non affossano la rosa.
+  const benchByRole={P:[],D:[],C:[],A:[]};
+  for(const r of Object.keys(benchByRole)){
+    benchByRole[r]=bench
+      .filter(p=>p.role===r)
+      .sort((a,b)=>playerLineupValue(b)-playerLineupValue(a));
+  }
+
+  const depthSamples=[];
+  // Prime rotazioni utili: 1 portiere/copertura, 3 D, 3 C, 3 A.
+  const depthLimits={P:1,D:3,C:3,A:3};
+  for(const r of ['P','D','C','A']){
+    const arr=benchByRole[r].slice(0,depthLimits[r]);
+    for(const p of arr){
+      let v=playerLineupValue(p);
+      if(r==='P' && keeperCov.covered && p.team===keeperCov.team){
+        v=Math.max(v,72); // backup del blocco porta = copertura utile
+      }
+      depthSamples.push(v);
+    }
+  }
+
+  const depthScore=depthSamples.length
+    ? depthSamples.reduce((a,b)=>a+b,0)/depthSamples.length
+    : (best&&best.missing===0?60:45);
+
+  // Qualità rosa = forza dell'11 + profondità reale.
+  // L'11 resta centrale, ma una panchina debole deve incidere in modo sensibile.
+  const quality=Math.round(Math.max(0,Math.min(100,
+    (best?.starterAvg||0)*.72 + depthScore*.28
+  )));
+
+  // Titolarità della rosa: considera tutti i giocatori.
+  // L'11 pesa un po' di più, ma le riserve devono comunque essere affidabili
+  // per misurare davvero la profondità contro turnover, squalifiche e infortuni.
+  const starterTit=best?.starterTit||0;
+  const overallTitSamples=details.map(p=>p.titStars||3);
+  const overallTit=overallTitSamples.length
+    ? overallTitSamples.reduce((a,b)=>a+b,0)/overallTitSamples.length
+    : 3;
+  const titularityStars=starterTit
+    ? starterTit*.40 + overallTit*.60
+    : overallTit;
+
+  return {
+    formation:best?.formation?.name||'—',
+    formationData:best?.formation||null,
+    starterAvg:Math.round(best?.starterAvg||0),
+    starterTit,
+    depthScore:Math.round(depthScore),
+    quality,
+    titularityStars,
+    missing11:best?.missing||0,
+    roleStarter:best?.roleStarter||{P:[],D:[],C:[],A:[]},
+    benchByRole
+  };
+}
+
+function qualitativeBalance(o){
+  const lineup=squadLineupProfile(o);
+  const details=ownerPlayerDetails(o);
+
+  if(!details.length){
+    return {score:0,roleScores:{P:0,D:0,C:0,A:0},coveredRoles:0,summary:'Nessun reparto valutabile',lineup};
+  }
+
+  const roleScores={P:0,D:0,C:0,A:0};
+  const roleWeights={P:.12,D:.24,C:.29,A:.35};
+
+  // Il reparto viene valutato soprattutto sui giocatori che entrano nell'11 ideale.
+  for(const r of ['P','D','C','A']){
+    const starters=lineup.roleStarter[r]||[];
+
+    if(r==='P'){
+      const cov=goalkeeperCoverage(o);
+      if(cov.main){
+        const mainScore=playerLineupValue(cov.main);
+        const coverageBonus=cov.covered?Math.min(8,(cov.count-1)*4):0;
+        roleScores.P=Math.round(Math.min(100,mainScore+coverageBonus));
+      }
+      continue;
+    }
+
+    const allRole=details
+      .filter(p=>p.role===r)
+      .sort((a,b)=>playerLineupValue(b)-playerLineupValue(a));
+
+    if(!allRole.length) continue;
+
+    const starterVals=starters.map(playerLineupValue);
+    const starterAvg=starterVals.length
+      ? starterVals.reduce((a,b)=>a+b,0)/starterVals.length
+      : 0;
+
+    // Solo le prime 1-2 riserve utili incidono sulla profondità del reparto.
+    const starterIds=new Set(starters.map(p=>String(p.id)));
+    const backups=allRole.filter(p=>!starterIds.has(String(p.id))).slice(0,2);
+    const backupAvg=backups.length
+      ? backups.reduce((s,p)=>s+playerLineupValue(p),0)/backups.length
+      : Math.max(50,starterAvg-18);
+
+    const starterShare=starters.length?0.88:0;
+    roleScores[r]=Math.round(Math.max(0,Math.min(100,
+      starterAvg*starterShare + backupAvg*(1-starterShare)
+    )));
+  }
+
+  const activeRoles=Object.keys(ROLE_SLOTS).filter(r=>roleScores[r]>0);
+  const vals=activeRoles.map(r=>roleScores[r]);
+
+  if(!vals.length){
+    return {score:0,roleScores,coveredRoles:0,summary:'Nessun reparto valutabile',lineup};
+  }
+
+  let weightedQuality=0,usedWeight=0;
+  for(const r of activeRoles){
+    weightedQuality+=roleScores[r]*roleWeights[r];
+    usedWeight+=roleWeights[r];
+  }
+  weightedQuality=usedWeight?weightedQuality/usedWeight:0;
+
+  const mean=vals.reduce((a,b)=>a+b,0)/vals.length;
+  const variance=vals.reduce((s,v)=>s+Math.pow(v-mean,2),0)/vals.length;
+  const sd=Math.sqrt(variance);
+
+  // Penalità di squilibrio contenuta: una rosa può volutamente essere più forte
+  // in attacco e meno in difesa senza risultare automaticamente "sbagliata".
+  const spreadPenalty=Math.min(20,sd*0.95);
+  const score=Math.round(Math.max(0,Math.min(100,weightedQuality-spreadPenalty)));
+
+  const weakest=activeRoles.slice().sort((a,b)=>roleScores[a]-roleScores[b])[0];
+  const strongest=activeRoles.slice().sort((a,b)=>roleScores[b]-roleScores[a])[0];
+
+  let summary='';
+  if(activeRoles.length===1){
+    summary=`Valutazione provvisoria del reparto ${roleName(activeRoles[0])}.`;
+  }else if(sd<=6){
+    summary=`11 ${lineup.formation}: reparti molto omogenei per qualità.`;
+  }else if(sd<=12){
+    summary=`11 ${lineup.formation}: buon equilibrio, ${roleName(weakest)} leggermente sotto ${roleName(strongest)}.`;
+  }else{
+    summary=`11 ${lineup.formation}: ${roleName(weakest)} è il reparto più debole rispetto a ${roleName(strongest)}.`;
+  }
+
+  return {score,roleScores,coveredRoles:activeRoles.length,summary,sd,lineup};
+}
+
+
+function calibrateHealthComponent(value,type='generic'){
+  const v=Math.max(0,Math.min(100,Number(value)||0));
+
+  // Le metriche grezze del Fantacalcio hanno un soffitto pratico inferiore a 100:
+  // una rosa eccellente può avere qualità 84-90, profondità 72-82,
+  // titolarità 80-90 ecc. Le trasformiamo in una scala "salute" in cui
+  // 90+ è raggiungibile solo con valori realmente eccellenti.
+  if(type==='quality'){
+    return Math.max(0,Math.min(100,Math.round(v*1.50-35)));
+  }
+  if(type==='titularity'){
+    return Math.max(0,Math.min(100,Math.round(50+(v-50)*1.25)));
+  }
+  if(type==='depth'){
+    return Math.max(0,Math.min(100,Math.round(45+(v-45)*1.20)));
+  }
+  if(type==='balance'){
+    return Math.max(0,Math.min(100,Math.round(50+(v-50)*1.18)));
+  }
+  if(type==='budget'){
+    return Math.max(0,Math.min(100,Math.round(55+(v-55)*1.12)));
+  }
+  return v;
+}
+
+function healthScoreBreakdown({quality,titularity,balance,budget,depth,keeperCovered}){
+  const calibrated={
+    quality:calibrateHealthComponent(quality,'quality'),
+    titularity:calibrateHealthComponent(titularity,'titularity'),
+    balance:calibrateHealthComponent(balance,'balance'),
+    budget:calibrateHealthComponent(budget,'budget'),
+    depth:calibrateHealthComponent(depth,'depth')
+  };
+
+  // Forza dell'11 + qualità restano la componente principale.
+  // Profondità e titolarità pesano abbastanza da distinguere una rosa
+  // "11 forte ma corta" da una rosa davvero completa.
+  const weighted=
+    calibrated.quality*.30 +
+    calibrated.titularity*.22 +
+    calibrated.balance*.18 +
+    calibrated.budget*.15 +
+    calibrated.depth*.15;
+
+  const keeperBonus=keeperCovered?2:0;
+  const score=Math.round(Math.max(0,Math.min(100,weighted+keeperBonus)));
+
+  return {score,calibrated};
+}
+
 function squadAnalysis(o){
   const allPlayers=ownerPlayerDetails(o);
   const totalSlots=Object.values(ROLE_SLOTS).reduce((a,b)=>a+b,0);
@@ -1818,60 +2116,54 @@ function squadAnalysis(o){
   }
 
   const keeperCoverage=goalkeeperCoverage(o);
-  const nonKeepers=allPlayers.filter(p=>p.role!=='P');
+  const lineup=squadLineupProfile(o);
 
-  // Per la qualità, un blocco di portieri della stessa squadra vale come un'unica "porta".
-  // I secondi/terzi a 1 non abbassano la media del reparto.
-  const qualityPlayers=[
-    ...nonKeepers,
-    ...keeperCoverage.effectivePlayers
-  ];
+  // La qualità della rosa è soprattutto la qualità dell'11 ideale.
+  // Le prime alternative contano come profondità; gli ultimi slot low-cost pesano poco.
+  const quality=lineup.quality;
 
-  const quality=Math.round(
-    qualityPlayers.reduce((s,p)=>s+(p.score||calcBaseScore(p)||50),0) /
-    Math.max(1,qualityPlayers.length)
-  );
-
-  const nonKeeperStars=nonKeepers.map(p=>p.titStars||3);
-  let avgStars;
-
-  if(keeperCoverage.main){
-    const keeperEquivalentStars=keeperCoverage.covered
-      ? Math.max(4.5,keeperCoverage.main.titStars||4)
-      : (keeperCoverage.main.titStars||3);
-
-    avgStars=(
-      nonKeeperStars.reduce((s,x)=>s+x,0)+keeperEquivalentStars
-    )/Math.max(1,nonKeeperStars.length+1);
-  }else{
-    avgStars=nonKeeperStars.reduce((s,x)=>s+x,0)/Math.max(1,nonKeeperStars.length);
-  }
-
+  // Titolarità: 88% 11 ideale, 12% prime rotazioni.
+  let avgStars=lineup.titularityStars||3;
   const titularity=Math.round(((avgStars-1)/4)*100);
 
-  // Backup della stessa squadra del portiere principale: non sono profili rischiosi.
-  const riskPlayers=allPlayers.filter(p=>{
+  // Rischio ponderato: un titolare incerto pesa molto più di una riserva low-cost.
+  // Le ultime riserve possono tranquillamente essere profili meno forti senza penalizzare la rosa.
+  const starterIds=new Set();
+  for(const r of ['P','D','C','A']){
+    (lineup.roleStarter[r]||[]).forEach(p=>starterIds.add(String(p.id)));
+  }
+
+  let riskWeight=0,totalRiskWeight=0,riskCount=0;
+  for(const p of allPlayers){
     if(
       p.role==='P' &&
       keeperCoverage.covered &&
       p.team===keeperCoverage.team &&
       String(p.id)!==String(keeperCoverage.main.id)
     ){
-      return false;
+      continue;
     }
 
-    return (p.titStars||3)<=2 ||
+    const isRisk=(p.titStars||3)<=2 ||
       ['A RISCHIO','INFORTUNATO','MERCATO','DA EVITARE'].includes(p.tier2026);
-  });
 
-  const riskCount=riskPlayers.length;
-  const riskRatio=riskCount/Math.max(1,allPlayers.length);
-  const risk=riskRatio>=.30?'ALTO':riskRatio>=.15?'MEDIO':'BASSO';
+    const isStarter=starterIds.has(String(p.id));
+    const w=isStarter?1:.45;
+    totalRiskWeight+=w;
 
-  const roleProgress=Object.keys(ROLE_SLOTS).map(r=>ownerRoleCount(o,r)/ROLE_SLOTS[r]);
-  const avgProgress=roleProgress.reduce((a,b)=>a+b,0)/roleProgress.length;
-  const variance=roleProgress.reduce((s,x)=>s+Math.pow(x-avgProgress,2),0)/roleProgress.length;
-  const balance=Math.round(Math.max(0,Math.min(100,100-Math.sqrt(variance)*115)));
+    if(isRisk){
+      riskWeight+=w;
+      riskCount++;
+    }
+  }
+
+  const riskRatio=riskWeight/Math.max(1,totalRiskWeight);
+  const risk=riskRatio>=.28?'ALTO':riskRatio>=.14?'MEDIO':'BASSO';
+
+  // Equilibrio qualitativo: confronta la qualità reale dei reparti già costruiti.
+  // Nelle aste per reparto non penalizza quelli che non sono ancora iniziati.
+  const qualitative=qualitativeBalance(o);
+  const balance=qualitative.score;
 
   const missing=totalSlots-o.roster.length;
   const reserveSafety=missing<=0?1:Math.max(0,Math.min(1,(o.budget-missing)/Math.max(1,state.budget0*.25)));
@@ -1886,22 +2178,29 @@ function squadAnalysis(o){
   const overrunPenalty=Math.min(45,overrun/Math.max(1,state.budget0)*180);
   const budget=Math.round(Math.max(0,Math.min(100,55+reserveSafety*45-overrunPenalty)));
 
-  // Premio contenuto alla copertura della porta.
-  const keeperBonus=keeperCoverage.covered?4:0;
+  // Ricalibrazione dello score: i valori grezzi restano visibili e realistici,
+  // ma lo score complessivo usa una scala calibrata sulla difficoltà reale
+  // di costruire una rosa eccellente.
+  const healthBreakdown=healthScoreBreakdown({
+    quality,
+    titularity,
+    balance,
+    budget,
+    depth:lineup.depthScore,
+    keeperCovered:keeperCoverage.covered
+  });
+  const rawScore=healthBreakdown.score;
 
-  const rawScore=Math.round(Math.min(100,
-    quality*.35 +
-    titularity*.25 +
-    balance*.20 +
-    budget*.20 +
-    keeperBonus
-  ));
-
+  // Durante l'asta lo score resta prudente; a rosa completa non c'è penalità.
   const score=Math.round(rawScore*(.78+.22*completion));
   const complete=o.roster.length>=totalSlots;
 
   let advice='';
-  if(keeperCoverage.covered && keeperCoverage.backups.length){
+  if(lineup.missing11>0 && o.roster.length>=11){
+    advice=`⚠️ 11 ideale ancora incompleto: mancano ${lineup.missing11} slot per una formazione competitiva.`;
+  }else if(lineup.depthScore<55 && o.roster.length>=15){
+    advice='⚠️ 11 valido ma profondità bassa: troppe riserve deboli possono pesare con turnover, squalifiche e infortuni. Cerca alternative più affidabili.';
+  }else if(keeperCoverage.covered && keeperCoverage.backups.length){
     advice=`🧤 Porta coperta: ${keeperCoverage.main.name} + ${keeperCoverage.backups.length} riserva${keeperCoverage.backups.length>1?'e':''} della stessa squadra. I backup non penalizzano qualità e titolarità.`;
   }else if(risk==='ALTO'){
     advice=`⚠️ Rischio alto: ${riskCount} profili hanno titolarità bassa o fascia rischiosa. Privilegia giocatori più affidabili nei prossimi slot.`;
@@ -1910,7 +2209,7 @@ function squadAnalysis(o){
   }else if(budget<55){
     advice='⚠️ Budget sotto pressione: evita sovrapprezzi e proteggi i crediti necessari per completare la rosa.';
   }else if(balance<60){
-    advice='⚠️ Rosa ancora sbilanciata tra reparti: concentra i prossimi acquisti sugli slot meno coperti.';
+    advice=`⚠️ Equilibrio qualitativo basso: ${qualitative.summary}`;
   }else if(quality>=82&&avgStars>=4.1){
     advice='✅ Rosa di qualità e affidabile: puoi permetterti una scommessa controllata negli ultimi slot.';
   }else{
@@ -1919,7 +2218,7 @@ function squadAnalysis(o){
 
   return {
     score,rawScore,completion,quality,titularity,balance,budget,
-    risk,riskCount,avgStars,complete,advice,keeperCoverage
+    risk,riskCount,avgStars,complete,advice,keeperCoverage,qualitative,lineup,healthBreakdown
   };
 }
 
@@ -1946,13 +2245,15 @@ function renderMySquadHealth(){
       <div class="health-score ${cls}">${a.score}</div>
       <div>
         <div class="health-title">${status}</div>
-        <div class="health-sub">Score complessivo su qualità, titolarità, equilibrio e gestione budget.</div>
+        <div class="health-sub">Score complessivo calibrato su forza dell'11, profondità, titolarità dell'intera rosa, equilibrio qualitativo e gestione del budget. Una rosa eccellente può superare 90/100.</div>
       </div>
     </div>
     <div class="health-grid">
-      <div class="health-metric"><span>Qualità</span><b>${a.quality}/100</b></div>
-      <div class="health-metric"><span>Titolarità</span><b>${a.avgStars.toFixed(1)}★</b></div>
-      <div class="health-metric"><span>Equilibrio</span><b>${a.balance}/100</b></div>
+      <div class="health-metric"><span>Qualità 11 + profondità</span><b>${a.quality}/100</b></div>
+      <div class="health-metric"><span>Titolarità rosa</span><b>${a.avgStars.toFixed(1)}★</b></div>
+      <div class="health-metric"><span>11 ideale</span><b>${a.lineup?.formation||'—'}</b></div>
+      <div class="health-metric"><span>Profondità</span><b>${a.lineup?.depthScore||0}/100</b></div>
+      <div class="health-metric"><span>Equilibrio qualità</span><b>${a.balance}/100</b></div>
       <div class="health-metric"><span>Budget</span><b>${a.budget}/100</b></div>
       <div class="health-metric"><span>Rischio</span><b style="color:${a.risk==='ALTO'?'#fca5a5':a.risk==='MEDIO'?'#fcd34d':'#86efac'}">${a.risk}</b></div>
       <div class="health-metric"><span>Profili rischiosi</span><b>${a.riskCount}</b></div>
@@ -1960,6 +2261,19 @@ function renderMySquadHealth(){
       <div class="health-metric"><span>Blocco portieri</span><b>${a.keeperCoverage?.covered?`${a.keeperCoverage.count} ${a.keeperCoverage.team}`:'—'}</b></div>
     </div>
     <div class="health-advice">${a.advice}</div>
+    ${a.qualitative?.coveredRoles?`
+    <div style="margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
+      ${Object.keys(ROLE_SLOTS).map(r=>{
+        const v=a.qualitative.roleScores[r]||0;
+        const active=ownerRoleCount(o,r)>0;
+        return `<div style="text-align:center;padding:6px 4px;border-radius:8px;background:var(--bg);border:1px solid var(--border)">
+          <div style="font-size:9px;color:var(--text-muted)">${r}</div>
+          <div style="font-size:12px;font-weight:800;color:${active?(v>=80?'#86efac':v>=65?'#fcd34d':'#fca5a5'):'var(--text-muted)'}">${active?v:'—'}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="font-size:9px;color:var(--text-muted);margin-top:6px">${a.qualitative.summary}</div>
+    `:''}
   `;
 }
 
@@ -1986,7 +2300,7 @@ function renderFinalSquadReport(){
     const label=x.a.complete?'completa':`in corso ${progress}`;
     return `<div class="rank-row ${mine?'mine':''}">
       <div class="rank-pos">${i+1}</div>
-      <div class="rank-main"><b>${esc(x.o.name)}</b><span>${label} · Qualità ${x.a.quality} · Tit. ${x.a.avgStars.toFixed(1)}★ · Rischio ${x.a.risk}</span></div>
+      <div class="rank-main"><b>${esc(x.o.name)}</b><span>${label} · 11 ${x.a.lineup?.formation||'—'} · Qualità ${x.a.quality} · Prof. ${x.a.lineup?.depthScore||0} · Tit. rosa ${x.a.avgStars.toFixed(1)}★ · Eq. ${x.a.balance} · Rischio ${x.a.risk}</span></div>
       <div class="rank-score ${scoreClass(x.a.score)}">${x.a.score}</div>
     </div>`;
   }).join('');
