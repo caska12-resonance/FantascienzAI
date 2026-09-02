@@ -398,6 +398,13 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .modal-head h2{margin:0;font-size:17px}
 .help-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#a0aec0;line-height:1.6}
+.guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.onboarding-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.onboarding-field{display:flex;flex-direction:column;gap:6px}
+.onboarding-field>span{font-size:11px;font-weight:700;color:var(--text-secondary)}
+.onboarding-field small{font-weight:500;color:var(--text-muted)}
+.onboarding-wide{grid-column:1/-1}
+@media(max-width:700px){.guide-grid,.onboarding-grid{grid-template-columns:1fr}.onboarding-wide{grid-column:auto}}
 .kbd{padding:2px 6px;border-radius:5px;background:var(--elevated);border:1px solid var(--border);font-family:ui-monospace,monospace;font-size:10px}
 
 .focus-card{
@@ -470,6 +477,7 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
     </div>
     <div class="header-actions">
       <button class="btn primary" id="settingsBtn">⚙️ Impostazioni</button>
+      <button class="btn" id="guideBtn">❓ Guida</button>
       <button class="btn" id="exportBtn">📥 Esporta</button>
       <button class="btn danger" id="resetBtn">🗑️ Reset</button>
     </div>
@@ -547,8 +555,8 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
       <div id="focusPanel">
         <div style="padding:40px 20px;text-align:center;color:var(--text-muted)">
           <div style="font-size:32px;margin-bottom:10px">👆</div>
-          <div style="font-size:13px;font-weight:600">Seleziona un giocatore dal listone</div>
-          <div style="font-size:11px;margin-top:4px">Vedrai prezzo consigliato, massimo live e suggerimenti tattici</div>
+          <div style="font-size:13px;font-weight:700">Seleziona il primo giocatore chiamato all’asta.</div>
+          <div style="font-size:11px;margin-top:5px;line-height:1.5">Ti dirò quanto vale, fino a dove spingerti e quando fermarti.</div>
         </div>
       </div>
     </div>
@@ -580,14 +588,39 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
   <div class="footer">FANTASCIENZA AI 2026/27 · Leghe da 6/8/10/12 squadre · Dati salvati in locale</div>
 </div>
 
+<div id="onboardingModal" class="modal hidden"><div class="modal-box" style="max-width:620px">
+  <div class="modal-head"><h2>Configura la tua asta</h2></div>
+  <form id="onboardingForm">
+    <div class="onboarding-grid">
+      <label class="onboarding-field"><span>Numero squadre</span><select id="onboardingTeams" class="field"><option>6</option><option selected>8</option><option>10</option><option>12</option></select></label>
+      <label class="onboarding-field"><span>Budget iniziale</span><input id="onboardingBudget" class="field" type="number" min="50" max="5000" value="500"></label>
+      <label class="onboarding-field onboarding-wide"><span>Nome della tua squadra</span><input id="onboardingMyTeam" class="field" maxlength="40" placeholder="La mia squadra"></label>
+      <label class="onboarding-field onboarding-wide"><span>Nomi avversari <small>(facoltativi, separati da virgola)</small></span><input id="onboardingRivals" class="field" placeholder="Luca, Marco, Andrea..."></label>
+      <label class="onboarding-field onboarding-wide"><span>Modalità asta</span><select id="onboardingMode" class="field"><option value="role">Per reparti</option><option value="random">Random</option></select></label>
+    </div>
+    <div class="help-box" style="margin-top:12px">Potrai cambiare queste impostazioni anche in seguito da “Impostazioni”.</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px"><button type="submit" class="btn primary">Inizia l’asta</button></div>
+  </form>
+</div></div>
 <div id="modal" class="modal hidden"><div class="modal-box">
   <div class="modal-head"><h2>Impostazioni Asta</h2><button class="btn small" id="closeModal">Chiudi</button></div>
   <div id="modalContent"></div>
 </div></div>
 
-<div id="guideModal" class="modal hidden"><div class="modal-box" style="max-width:480px">
-  <div class="modal-head"><h2 id="guideModalTitle">Guida Asta</h2><button class="btn small" id="closeGuideModal">Chiudi</button></div>
-  <div id="guideModalContent"></div>
+<div id="guideModal" class="modal hidden"><div class="modal-box" style="max-width:760px">
+  <div class="modal-head"><h2>Guida FANTASCIENZA AI</h2><button class="btn small" id="closeGuideModal">Chiudi</button></div>
+  <div class="guide-grid">
+    <div class="help-box"><b>AI Score</b><br>Valutazione complessiva del giocatore su scala 1-100. Non è un prezzo.</div>
+    <div class="help-box"><b>Prezzo ideale</b><br>È la cifra che il sistema considera corretta in questo momento.</div>
+    <div class="help-box"><b>Max Live</b><br>È il tetto dinamico oltre il quale conviene fermarsi. Cambia con asta, scarsità, concorrenza, budget e composizione della rosa.</div>
+    <div class="help-box"><b>Quotazione / FVM</b><br>Indicatori aggiornati di valore e appetibilità fantacalcistica, usati insieme a PMA, fascia e contesto.</div>
+    <div class="help-box"><b>Titolarità</b><br>5★ titolarissimo, 4★ titolare, 3★ ballottaggio/subentrante, 2★ incerto, 1★ riserva.</div>
+    <div class="help-box"><b>Fascia</b><br>Classificazione qualitativa del giocatore: top, semitop, scommessa, low cost e così via.</div>
+    <div class="help-box"><b>Strategia del momento</b><br>Suggerisce i profili più interessanti in base ai bisogni reali della tua rosa.</div>
+    <div class="help-box"><b>Salute della rosa</b><br>Valuta qualità, profondità, titolarità, rischio, equilibrio e sostenibilità del budget.</div>
+    <div class="help-box"><b>Inflazione mercato</b><br>Misura quanto l’asta sta spendendo rispetto ai valori attesi, anche per reparto.</div>
+    <div class="help-box"><b>Rose della lega</b><br>Controlla budget, slot e acquisti tuoi e degli avversari; in Dettagliata puoi aprire un reparto o tutta la rosa.</div>
+  </div>
 </div></div>
 
 <div class="toast-container" id="toasts"></div>
@@ -2902,6 +2935,42 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
 ['q','role','team','sort'].forEach(id=>document.getElementById(id).addEventListener('input',render));
 
 load();fillTeams();recalcAll();
+
+function showOnboarding(){
+  const m=document.getElementById('onboardingModal'); if(!m)return;
+  document.getElementById('onboardingTeams').value=String(state.owners.length||8);
+  document.getElementById('onboardingBudget').value=String(state.budget0||500);
+  document.getElementById('onboardingMyTeam').value=(state.owners[0]?.name||'')==='La mia squadra'?'':(state.owners[0]?.name||'');
+  document.getElementById('onboardingMode').value=state.auctionMode||'role';
+  m.classList.remove('hidden');
+}
+function hideOnboarding(){document.getElementById('onboardingModal')?.classList.add('hidden')}
+
+document.getElementById('onboardingForm')?.addEventListener('submit',e=>{
+  e.preventDefault();
+  const teams=Number(document.getElementById('onboardingTeams').value)||8;
+  const budget=Math.max(50,Number(document.getElementById('onboardingBudget').value)||500);
+  const mine=(document.getElementById('onboardingMyTeam').value||'La mia squadra').trim()||'La mia squadra';
+  const rivals=(document.getElementById('onboardingRivals').value||'').split(',').map(x=>x.trim()).filter(Boolean);
+  const names=[mine];
+  for(let i=1;i<teams;i++) names.push(rivals[i-1]||`Rivale ${i}`);
+  const fresh=makeOwners(teams,budget,names);
+  state.owners.splice(0,state.owners.length,...fresh);
+  state.budget0=budget;
+  state.auctionMode=document.getElementById('onboardingMode').value==='random'?'random':'role';
+  state.auctionLog=[]; state.undoStack=[]; state.targets=new Set(); state.selected=null;
+  state.marketInflation={factor:1,n:0,pct:0,paidSum:0,expSum:0};
+  try{localStorage.setItem('fantascienza_onboarding_done','1')}catch(e){}
+  save(); recalcAll(); hideOnboarding(); toast('Asta configurata. Buona asta!','good');
+});
+
+document.getElementById('guideBtn')?.addEventListener('click',()=>document.getElementById('guideModal')?.classList.remove('hidden'));
+document.getElementById('closeGuideModal')?.addEventListener('click',()=>document.getElementById('guideModal')?.classList.add('hidden'));
+
+try{
+  if(!localStorage.getItem('fantascienza_onboarding_done')) setTimeout(showOnboarding,0);
+}catch(e){setTimeout(showOnboarding,0)}
+
 </script>
 </body>
 </html>
