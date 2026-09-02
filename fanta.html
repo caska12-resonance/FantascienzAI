@@ -90,8 +90,14 @@ body{
 
 .main-grid{
   display:grid;
-  grid-template-columns: minmax(0,1.6fr) minmax(380px,0.9fr) minmax(320px,0.7fr);
+  grid-template-columns:minmax(0,1.6fr) minmax(380px,0.9fr) minmax(320px,0.7fr);
   gap:14px;align-items:start;
+}
+.market-column{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
 }
 
 .card{
@@ -247,30 +253,58 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 }
 .action-row .btn{padding:10px;font-size:13px}
 
-.squads-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.league-rosters-card{width:100%;min-width:0}
+.league-rosters-header{gap:12px;flex-wrap:wrap}
+.roster-view-toggle{display:flex;gap:6px;flex-wrap:wrap}
+.squads-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
 .squad{
-  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;
-  transition:border-color .15s;
+  min-width:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px;transition:border-color .15s,background .15s;
 }
-.squad.mine{border-color:rgba(96,165,250,0.4);box-shadow:inset 0 0 0 1px rgba(96,165,250,0.1)}
-.squad-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.squad-name{font-weight:700;font-size:12px}
-.squad-budget{font-size:11px;color:var(--text-secondary)}
+.squad.mine{
+  border-color:rgba(99,102,241,.65);
+  box-shadow:inset 0 0 0 1px rgba(99,102,241,.18);
+  background:linear-gradient(180deg,rgba(99,102,241,.07),var(--bg) 42%);
+}
+.squad-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:7px}
+.squad-name-wrap{min-width:0}
+.squad-name{font-weight:800;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.squad.mine .squad-name{color:var(--accent);font-size:14px}
+.squad-meta{font-size:10px;color:var(--text-muted);margin-top:2px}
+.squad-quick-actions{display:flex;align-items:center;gap:6px;margin-top:7px}
+.squad-expand-all{
+  padding:5px 8px;font-size:10px;line-height:1;border-radius:7px;
+}
+.squad-budget{font-size:12px;color:var(--text-secondary);white-space:nowrap;font-weight:700}
 .squad-track{height:5px;background:var(--surface);border-radius:999px;overflow:hidden;margin-bottom:8px}
 .squad-fill{height:100%;border-radius:999px;transition:width .3s}
 .squad-fill.safe{background:var(--good)}.squad-fill.warn{background:var(--warn)}.squad-fill.danger{background:var(--bad)}
-.squad-roles{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px}
-.role-chip{
-  text-align:center;padding:3px 0;border-radius:6px;font-size:10px;font-weight:600;
-  background:var(--surface);color:var(--text-secondary);border:1px solid var(--border);
-}
 .role-chip.ok{color:var(--good);border-color:rgba(34,197,94,0.3)}
 .role-chip.warn{color:var(--warn);border-color:rgba(245,158,11,0.3)}
 .role-chip.full{color:var(--bad);border-color:rgba(239,68,68,0.3)}
-.squad-list{display:flex;flex-direction:column;gap:3px;max-height:90px;overflow:auto}
-.squad-item{display:flex;justify-content:space-between;font-size:11px;color:#cbd5e1}
+.squad-role-details{display:flex;flex-direction:column;gap:5px;margin-top:7px}
+.roster-compact .squad-role-details,.roster-compact .squad-quick-actions{display:none}
+.roster-detail .squad-role-details{display:flex}
+.roster-detail .squad-quick-actions{display:flex}
+.squad-role-details details{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;
+}
+.squad-role-details summary{
+  cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;
+  gap:8px;padding:7px 9px;font-size:11px;font-weight:700;color:var(--text-secondary);
+}
+.squad-role-details summary::-webkit-details-marker{display:none}
+.squad-role-details summary::after{content:'＋';font-size:13px;color:var(--text-muted)}
+.squad-role-details details[open] summary::after{content:'−'}
+.squad-role-list{padding:0 9px 8px;display:flex;flex-direction:column;gap:4px}
+.squad-item{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#cbd5e1}
 .squad-item span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .squad-item span:last-child{font-weight:700;color:var(--text-secondary)}
+@media(max-width:720px){
+  .league-rosters-header{align-items:flex-start}
+  .roster-view-toggle{width:100%}
+  .roster-view-toggle .btn{flex:1}
+}
 
 .targets-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow:auto;padding:2px}
 .target{
@@ -363,18 +397,33 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 .help-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#a0aec0;line-height:1.6}
 .kbd{padding:2px 6px;border-radius:5px;background:var(--elevated);border:1px solid var(--border);font-family:ui-monospace,monospace;font-size:10px}
 
-.focus-card{position:sticky;top:16px}
+.focus-card{
+  position:sticky;
+  top:16px;
+  align-self:start;
+  max-height:calc(100vh - 32px);
+  overflow:auto;
+}
 
 @media(max-width:1400px){
-  .main-grid{grid-template-columns:minmax(0,1.4fr) minmax(340px,0.8fr)}
-  .col-log{display:none}
+  .main-grid{grid-template-columns:minmax(0,1.45fr) minmax(340px,0.8fr)}
+  .col-log{
+    grid-column:1/-1;
+    display:grid!important;
+    grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+    gap:14px!important;
+  }
 }
 @media(max-width:1100px){
   .main-grid{grid-template-columns:1fr}
-  .col-log{display:block}
+  .col-log{
+    grid-column:auto;
+    display:flex!important;
+    flex-direction:column;
+  }
   .stats-bar{grid-template-columns:repeat(3,1fr)}
   .table-wrap{max-height:55vh}
-  .focus-card{position:static}
+  .focus-card{position:static;max-height:none;overflow:visible}
 }
 @media(max-width:700px){
   .app{padding:10px 10px}
@@ -435,6 +484,7 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
   </div>
 
   <div class="main-grid">
+    <div class="market-column">
     <div class="card">
       <div class="card-header">
         <div><h2>📋 Listone</h2><span class="sub">Clicca una riga per analizzare e assegnare</span></div>
@@ -469,6 +519,23 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
       </div>
     </div>
 
+<div class="card league-rosters-card">
+    <div class="card-header league-rosters-header">
+      <div>
+        <h2>🏟️ Rose della lega</h2>
+        <span class="sub">La tua rosa è sempre la prima · in Dettagliata apri i reparti per vedere slot, spesa e giocatori</span>
+      </div>
+      <div class="roster-view-toggle" role="group" aria-label="Vista rose">
+        <button class="btn small primary" id="rosterCompactBtn" type="button" onclick="setRosterView('compact')">Compatta</button>
+        <button class="btn small ghost" id="rosterDetailBtn" type="button" onclick="setRosterView('detail')">Dettagliata</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="squads" class="squads-grid roster-compact"></div>
+    </div>
+  </div>
+    </div>
+
     <div class="card focus-card">
       <div class="card-header">
         <h2>🎯 Focus Giocatore</h2>
@@ -499,10 +566,6 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
       <div class="card">
         <div class="card-header"><h2>📜 Log Asta</h2><div style="display:flex;gap:6px"><button class="btn small ghost" onclick="undoLast()" title="Annulla l'ultima assegnazione">↩️ Annulla</button><button class="btn small ghost" onclick="clearLog()">Svuota</button></div></div>
         <div class="card-body"><div id="logList" class="log-list"></div></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><h2>🏟️ Rose della lega</h2></div>
-        <div class="card-body"><div id="squads" class="squads-grid"></div></div>
       </div>
       <div class="card">
         <div class="card-header"><h2>🏆 Valutazione delle rose</h2><span class="tag" id="finalReportStatus">live</span></div>
@@ -1800,29 +1863,90 @@ function setFree(){
   if(freed){save();recalcAll();openPlayer(p.id);toast(`${esc(p.name)} reso disponibile`,'info');}
 }
 
+let rosterViewMode='compact';
+
+function setRosterView(mode){
+  rosterViewMode=mode==='detail'?'detail':'compact';
+  const grid=document.getElementById('squads');
+  if(grid){
+    grid.classList.toggle('roster-compact',rosterViewMode==='compact');
+    grid.classList.toggle('roster-detail',rosterViewMode==='detail');
+  }
+  const compactBtn=document.getElementById('rosterCompactBtn');
+  const detailBtn=document.getElementById('rosterDetailBtn');
+  if(compactBtn){
+    compactBtn.classList.toggle('primary',rosterViewMode==='compact');
+    compactBtn.classList.toggle('ghost',rosterViewMode!=='compact');
+  }
+  if(detailBtn){
+    detailBtn.classList.toggle('primary',rosterViewMode==='detail');
+    detailBtn.classList.toggle('ghost',rosterViewMode!=='detail');
+  }
+}
+
+function toggleAllSquadRoles(ownerId,button){
+  const card=document.querySelector(`.squad[data-owner-id="${ownerId}"]`);
+  if(!card)return;
+  const details=[...card.querySelectorAll('.squad-role-details details')];
+  if(!details.length)return;
+  const shouldOpen=details.some(d=>!d.open);
+  details.forEach(d=>d.open=shouldOpen);
+  if(button){
+    button.textContent=shouldOpen?'Chiudi tutta':'Apri tutta';
+    button.setAttribute('aria-expanded',shouldOpen?'true':'false');
+  }
+}
+
 function renderSquads(){
-  document.getElementById('squads').innerHTML=state.owners.map(o=>{
+  const grid=document.getElementById('squads');
+  if(!grid)return;
+
+  // t0 è sempre la nostra rosa: viene mantenuta come prima card.
+  const ordered=[...state.owners].sort((a,b)=>a.id==='t0'?-1:b.id==='t0'?1:0);
+
+  grid.innerHTML=ordered.map(o=>{
     const spentPct=state.budget0?Math.round(o.spent/state.budget0*100):0;
     const fillClass=spentPct<50?'safe':spentPct<80?'warn':'danger';
-    return `<div class="squad ${o.id==='t0'?'mine':''}">
-      <div class="squad-head"><div class="squad-name">${esc(o.name)}</div><div class="squad-budget">${o.budget} cr</div></div>
-      <div class="squad-track"><div class="squad-fill ${fillClass}" style="width:${Math.min(100,spentPct)}%"></div></div>
-      <div class="squad-roles">${Object.keys(ROLE_SLOTS).map(r=>{
-        const cnt=ownerRoleCount(o,r);const max=ROLE_SLOTS[r];
-        const cls=cnt>=max?'full':cnt>=max-1?'warn':'ok';
-        return `<div class="role-chip ${cls}">${cnt}/${max} ${r}</div>`;
-      }).join('')}</div>
-      <div class="squad-spending" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:6px;font-size:10px">
-        ${Object.keys(ROLE_SLOTS).map(r=>{
-          const spent=o.roleSpent[r]||0;
-          const share=Math.round(state.budget0*BASE_ROLE_SHARE[r]);
-          const color=spent>share*0.9?'#ef4444':spent>share*0.6?'#f59e0b':'#22c55e';
-          return `<div style="text-align:center;padding:3px 0;background:var(--bg);border-radius:6px;border:1px solid var(--border)"><div style="font-weight:700;color:${color}">${spent}</div><div style="color:var(--text-muted);font-size:9px">${r} /${share}</div></div>`;
-        }).join('')}
+    const owned=o.roster.length;
+    const mine=o.id==='t0';
+
+    const roleDetails=Object.keys(ROLE_SLOTS).map(r=>{
+      const list=o.roster.filter(x=>x.role===r);
+      const total=list.reduce((sum,x)=>sum+(Number(x.price)||0),0);
+      const content=list.length
+        ?list.map(x=>`<div class="squad-item"><span>${esc(x.name)}</span><span>${x.price} cr</span></div>`).join('')
+        :`<div style="font-size:10px;color:var(--text-muted)">Nessun acquisto</div>`;
+      return `<details>
+        <summary>
+          <span>${roleIcon(r)} ${r} · ${list.length}/${ROLE_SLOTS[r]} slot</span>
+          <span>${total} cr spesi</span>
+        </summary>
+        <div class="squad-role-list">${content}</div>
+      </details>`;
+    }).join('');
+
+    return `<div class="squad ${mine?'mine':''}" data-owner-id="${o.id}">
+      <div class="squad-head">
+        <div class="squad-name-wrap">
+          <div class="squad-name">${esc(o.name)}${mine?' · TU':''}</div>
+          <div class="squad-meta">${owned}/25 giocatori · ${o.spent} cr spesi</div>
+        </div>
+        <div class="squad-budget">${o.budget} cr</div>
       </div>
-      <div class="squad-list">${o.roster.length?o.roster.map(x=>`<div class="squad-item"><span>${esc(x.name)}</span><span>${x.price}</span></div>`).join(''):'<span style="color:var(--text-muted);font-size:11px">Nessun acquisto</span>'}</div>
+      <div class="squad-quick-actions">
+        <button
+          type="button"
+          class="btn small ghost squad-expand-all"
+          aria-expanded="false"
+          onclick="toggleAllSquadRoles('${o.id}',this)"
+        >Apri tutta</button>
+      </div>
+      <div class="squad-track"><div class="squad-fill ${fillClass}" style="width:${Math.min(100,spentPct)}%"></div></div>
+      <div class="squad-role-details">${roleDetails}</div>
     </div>`;
   }).join('');
+
+  setRosterView(rosterViewMode);
 }
 
 
