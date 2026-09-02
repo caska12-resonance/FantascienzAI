@@ -789,7 +789,92 @@ function availableRolePlayers(role,excludeId){return state.players.filter(p=>p.r
 function cheapestCostForRole(role,count,excludeId){if(count<=0)return 0;const vals=availableRolePlayers(role,excludeId).map(p=>1).sort((a,b)=>a-b);return vals.slice(0,count).reduce((a,b)=>a+b,0)}
 function ownerRoleCount(o,role){return o.roster.filter(p=>p.role===role).length}
 function ownerRemaining(o,role){return Math.max(0,ROLE_SLOTS[role]-ownerRoleCount(o,role))}
-function ownerMinimumReserve(o,focusRole,excludeId){let need=0;for(const r of Object.keys(ROLE_SLOTS)){const slots=ownerRemaining(o,r)-(r===focusRole?1:0);need+=cheapestCostForRole(r,Math.max(0,slots),excludeId)}return need}
+const AUCTION_ROLE_ORDER=['P','D','C','A'];
+
+function fantasyTierRank(p){
+  const rank={
+    'SUPER TOP':10,'TOP':9,'SEMITOP':8,'SOTTO SEMITOP':7,'FASCIA ALTA':6,
+    'JOLLY 1F':5,'POSSIBILI SORPRESE':5,'FASCIA MEDIA':4,'INFORTUNATO':4,
+    'SCOMMESSA':3,'SOPRA LOW COST':3,'JOLLY 2F':3,'LOW COST 1F':2,
+    'LOW COST 2F':2,'LEGHE NUMEROSE':1,'JOLLY 3F':1,'JOLLY 4F':1,
+    'MERCATO':1,'A RISCHIO':0,'DA EVITARE':0
+  };
+  return rank[p.tier2026] ?? Math.max(0,Math.min(10,Math.round((calcBaseScore(p)-45)/5)));
+}
+
+function futureRoleQualitativeReserve(o,role,excludeId){
+  const missing=ownerRemaining(o,role);
+  if(missing<=0) return 0;
+
+  const pool=availableRolePlayers(role,excludeId)
+    .filter(p=>!playerOwnerId(p.id))
+    .map(p=>({p,cost:Math.max(1,fvmBasePrice(p)),rank:fantasyTierRank(p)}));
+
+  if(!pool.length) return missing;
+
+  const top=pool.filter(x=>x.rank>=9).sort((a,b)=>a.cost-b.cost);
+  const semitop=pool.filter(x=>x.rank>=8).sort((a,b)=>a.cost-b.cost);
+
+  const options=[];
+
+  if(top.length){
+    const sample=top.slice(0,Math.min(4,top.length)).map(x=>x.cost).sort((a,b)=>a-b);
+    options.push({cost:sample[Math.floor(sample.length/2)],slots:1});
+  }
+
+  if(semitop.length>=2){
+    options.push({cost:semitop[0].cost+semitop[1].cost,slots:2});
+  }
+
+  if(!options.length){
+    const best=pool.slice().sort((a,b)=>b.rank-a.rank||b.cost-a.cost).slice(0,Math.min(2,missing));
+    options.push({cost:best.reduce((s,x)=>s+x.cost,0),slots:best.length});
+  }
+
+  const core=options.sort((a,b)=>a.cost-b.cost)[0];
+  const remainingSlots=Math.max(0,missing-core.slots);
+
+  const lowPool=pool
+    .filter(x=>x.rank>=1&&x.rank<=5)
+    .map(x=>x.cost)
+    .sort((a,b)=>a-b);
+
+  let filler=1;
+  if(lowPool.length){
+    const idx=Math.min(lowPool.length-1,Math.floor(lowPool.length*.35));
+    filler=Math.max(1,lowPool[idx]);
+  }
+
+  let reserve=core.cost+remainingSlots*filler;
+
+  // Attacco: ultimo reparto nelle aste per ruolo. Manteniamo un cuscinetto
+  // aggiuntivo perché arrivarci con soli crediti da riempimento non è accettabile.
+  if(role==='A'&&state.auctionMode==='role') reserve*=1.15;
+
+  return Math.max(missing,Math.round(reserve));
+}
+
+function ownerMinimumReserve(o,focusRole,excludeId){
+  let need=0;
+  const focusIndex=AUCTION_ROLE_ORDER.indexOf(focusRole);
+
+  for(const r of Object.keys(ROLE_SLOTS)){
+    const slots=Math.max(0,ownerRemaining(o,r)-(r===focusRole?1:0));
+    if(slots<=0) continue;
+
+    if(state.auctionMode==='role'){
+      const idx=AUCTION_ROLE_ORDER.indexOf(r);
+      if(focusIndex>=0&&idx>focusIndex){
+        need+=futureRoleQualitativeReserve(o,r,excludeId);
+        continue;
+      }
+    }
+
+    need+=cheapestCostForRole(r,slots,excludeId);
+  }
+
+  return Math.max(0,Math.min(o.budget-1,Math.round(need)));
+}
 function roleMarketNeedCost(o,role){
   const missing=ownerRemaining(o,role);
   if(missing<=0) return 0;
@@ -1673,6 +1758,19 @@ function auctionStrategy(p,o=state.owners[0],currentPrice=null){
   else if(stars===4) reliabilityText=' La titolarità è comunque abbastanza solida.';
   else if(stars>0&&stars<=2) reliabilityText=' Occhio però alla titolarità, che resta poco sicura.';
 
+  let futureReserveNote='';
+  if(state.auctionMode==='role'){
+    const idx=AUCTION_ROLE_ORDER.indexOf(p.role);
+    const future=AUCTION_ROLE_ORDER.slice(idx+1).filter(r=>ownerRemaining(o,r)>0);
+    if(future.length){
+      const reserves=future.map(r=>({r,v:futureRoleQualitativeReserve(o,r,p.id)})).sort((a,b)=>b.v-a.v);
+      const main=reserves[0];
+      if(main&&main.v>=state.budget0*.18){
+        futureReserveNote=` Sto proteggendo circa ${main.v} crediti per costruire un ${roleName(main.r).toLowerCase()} competitivo.`;
+      }
+    }
+  }
+
   let reason='';
   if(roleMissing===0){
     reason=`${needText}: a questo punto lo prenderei solo a prezzo d’occasione.`;
@@ -1688,6 +1786,7 @@ function auctionStrategy(p,o=state.owners[0],currentPrice=null){
     reason=`A ${price} mi piace: ${needText.toLowerCase()} e il prezzo è ancora dentro una fascia conveniente. Proverei a chiuderlo entro ${buyHigh}.${reliabilityText}`;
   }
 
+  reason+=futureReserveNote;
   return {buyLow,buyHigh,goodHigh,scarcityLow,max,label,tone,reason,altCount,scarcityText,rivals,competitionText,zone,price};
 }
 
