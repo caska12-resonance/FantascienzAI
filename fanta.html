@@ -661,6 +661,45 @@ const state={
 };
 computeValuePercentiles(state.players);
 
+const perfCache={
+  version:0,
+  ownerByPlayerId:new Map(),
+  availableByRole:{P:[],D:[],C:[],A:[]},
+  basePriceById:new Map(),
+  roleMarketNeed:new Map(),
+  qualitativeReserve:new Map(),
+  dynamicBudget:new Map()
+};
+
+function invalidatePerfCache(){
+  perfCache.version++;
+  perfCache.ownerByPlayerId=new Map();
+  perfCache.availableByRole={P:[],D:[],C:[],A:[]};
+  perfCache.basePriceById=new Map();
+  perfCache.roleMarketNeed=new Map();
+  perfCache.qualitativeReserve=new Map();
+  perfCache.dynamicBudget=new Map();
+}
+
+function rebuildOwnerIndex(){
+  const map=new Map();
+  for(const o of state.owners){
+    for(const x of o.roster) map.set(String(x.id),o.id);
+  }
+  perfCache.ownerByPlayerId=map;
+  return map;
+}
+
+function rebuildAvailableRoleCache(){
+  if(!perfCache.ownerByPlayerId.size) rebuildOwnerIndex();
+  const roles={P:[],D:[],C:[],A:[]};
+  for(const p of state.players){
+    if(!perfCache.ownerByPlayerId.has(String(p.id)) && roles[p.role]) roles[p.role].push(p);
+  }
+  perfCache.availableByRole=roles;
+  return roles;
+}
+
 function norm(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function scoreClass(s){return s>=92?'splus':s>=85?'sgood':s>=70?'swarn':'sbad'}
@@ -783,9 +822,20 @@ function calcBaseScore(p){
   return Math.round(Math.max(1,Math.min(99,s)));
 }
 
-function playerOwnerId(id){for(const o of state.owners){if(o.roster.some(x=>String(x.id)===String(id)))return o.id}return null}
+function playerOwnerId(id){
+  if(!perfCache.ownerByPlayerId.size) rebuildOwnerIndex();
+  return perfCache.ownerByPlayerId.get(String(id))||null;
+}
 function playerIsFree(id){return !playerOwnerId(id)}
-function availableRolePlayers(role,excludeId){return state.players.filter(p=>p.role===role&&playerIsFree(p.id)&&String(p.id)!==String(excludeId))}
+function availableRolePlayers(role,excludeId){
+  if(!perfCache.availableByRole[role]||(!perfCache.availableByRole.P.length&&!perfCache.availableByRole.D.length&&!perfCache.availableByRole.C.length&&!perfCache.availableByRole.A.length)){
+    rebuildAvailableRoleCache();
+  }
+  const arr=perfCache.availableByRole[role]||[];
+  if(excludeId==null) return arr;
+  const sid=String(excludeId);
+  return arr.filter(p=>String(p.id)!==sid);
+}
 function cheapestCostForRole(role,count,excludeId){if(count<=0)return 0;const vals=availableRolePlayers(role,excludeId).map(p=>1).sort((a,b)=>a-b);return vals.slice(0,count).reduce((a,b)=>a+b,0)}
 function ownerRoleCount(o,role){return o.roster.filter(p=>p.role===role).length}
 function ownerRemaining(o,role){return Math.max(0,ROLE_SLOTS[role]-ownerRoleCount(o,role))}
@@ -802,7 +852,7 @@ function fantasyTierRank(p){
   return rank[p.tier2026] ?? Math.max(0,Math.min(10,Math.round((calcBaseScore(p)-45)/5)));
 }
 
-function futureRoleQualitativeReserve(o,role,excludeId){
+function futureRoleQualitativeReserveUncached(o,role,excludeId){
   const missing=ownerRemaining(o,role);
   if(missing<=0) return 0;
 
@@ -854,6 +904,15 @@ function futureRoleQualitativeReserve(o,role,excludeId){
   return Math.max(missing,Math.round(reserve));
 }
 
+function futureRoleQualitativeReserve(o,role,excludeId){
+  const key=`${o.id}|${role}|${excludeId??''}|${o.budget}|${o.roster.length}`;
+  if(perfCache.qualitativeReserve.has(key)) return perfCache.qualitativeReserve.get(key);
+  const v=futureRoleQualitativeReserveUncached(o,role,excludeId);
+  perfCache.qualitativeReserve.set(key,v);
+  return v;
+}
+
+
 function ownerMinimumReserve(o,focusRole,excludeId){
   let need=0;
   const focusIndex=AUCTION_ROLE_ORDER.indexOf(focusRole);
@@ -865,7 +924,7 @@ function ownerMinimumReserve(o,focusRole,excludeId){
     if(state.auctionMode==='role'){
       const idx=AUCTION_ROLE_ORDER.indexOf(r);
       if(focusIndex>=0&&idx>focusIndex){
-        need+=futureRoleQualitativeReserve(o,r,excludeId);
+        need+=futureRoleQualitativeReserve(o,r,null);
         continue;
       }
     }
@@ -875,7 +934,7 @@ function ownerMinimumReserve(o,focusRole,excludeId){
 
   return Math.max(0,Math.min(o.budget-1,Math.round(need)));
 }
-function roleMarketNeedCost(o,role){
+function roleMarketNeedCostUncached(o,role){
   const missing=ownerRemaining(o,role);
   if(missing<=0) return 0;
 
@@ -895,7 +954,16 @@ function roleMarketNeedCost(o,role){
   return Math.max(missing,median*missing*urgency);
 }
 
-function dynamicBudgetPlan(o){
+function roleMarketNeedCost(o,role){
+  const key=`${o.id}|${role}|${o.budget}|${o.roster.length}`;
+  if(perfCache.roleMarketNeed.has(key)) return perfCache.roleMarketNeed.get(key);
+  const v=roleMarketNeedCostUncached(o,role);
+  perfCache.roleMarketNeed.set(key,v);
+  return v;
+}
+
+
+function dynamicBudgetPlanUncached(o){
   const roles=Object.keys(ROLE_SLOTS);
   const totalMissing=roles.reduce((sum,r)=>sum+ownerRemaining(o,r),0);
   const hardReserve=totalMissing;
@@ -918,6 +986,15 @@ function dynamicBudgetPlan(o){
 
   return {envelopes,costs,totalMissing,hardReserve,discretionary};
 }
+
+function dynamicBudgetPlan(o){
+  const key=`${o.id}|${o.budget}|${o.roster.length}`;
+  if(perfCache.dynamicBudget.has(key)) return perfCache.dynamicBudget.get(key);
+  const v=dynamicBudgetPlanUncached(o);
+  perfCache.dynamicBudget.set(key,v);
+  return v;
+}
+
 
 function baseTargetForOwner(o,role){return Math.min(o.budget,dynamicBudgetPlan(o).envelopes[role]||0)}
 
@@ -1158,7 +1235,7 @@ function starsFactor(p){
   return 0.90;
 }
 
-function fvmBasePrice(p){
+function fvmBasePriceUncached(p){
   // 1) Prezzo-ancora: override contestuale > PMA > prezzo tier/FVM.
   let anchorPct=null;
   let contextChanged=false;
@@ -1212,6 +1289,15 @@ function fvmBasePrice(p){
 
   return Math.max(1,Math.round(adjustedPct/100*state.budget0));
 }
+
+function fvmBasePrice(p){
+  const key=String(p.id);
+  if(perfCache.basePriceById.has(key)) return perfCache.basePriceById.get(key);
+  const v=fvmBasePriceUncached(p);
+  perfCache.basePriceById.set(key,v);
+  return v;
+}
+
 
 function recalcPlayer(p){
   p.score=calcBaseScore(p);const o=state.owners[0];
@@ -1324,8 +1410,13 @@ function renderTargets(){
 }
 
 function recalcAll(){
+  invalidatePerfCache();
+  rebuildOwnerIndex();
+  rebuildAvailableRoleCache();
+
   state.marketInflation=marketInflation();
   state.players.forEach(recalcPlayer);
+
   render();
   renderInflationStat();
   renderNextTargets();
@@ -1763,7 +1854,7 @@ function auctionStrategy(p,o=state.owners[0],currentPrice=null){
     const idx=AUCTION_ROLE_ORDER.indexOf(p.role);
     const future=AUCTION_ROLE_ORDER.slice(idx+1).filter(r=>ownerRemaining(o,r)>0);
     if(future.length){
-      const reserves=future.map(r=>({r,v:futureRoleQualitativeReserve(o,r,p.id)})).sort((a,b)=>b.v-a.v);
+      const reserves=future.map(r=>({r,v:futureRoleQualitativeReserve(o,r,null)})).sort((a,b)=>b.v-a.v);
       const main=reserves[0];
       if(main&&main.v>=state.budget0*.18){
         futureReserveNote=` Sto proteggendo circa ${main.v} crediti per costruire un ${roleName(main.r).toLowerCase()} competitivo.`;
@@ -2096,11 +2187,12 @@ function assignSelected(){
   state.undoStack.push({playerId:p.id,ownerId:o.id,price,role:p.role});
   if(state.undoStack.length>20) state.undoStack.shift();
   addLog(p.name,price,o.name,oid==='t0',p.role);
-  save();recalcAll();openPlayer(p.id);
+  save();recalcAll();
   toast(`${esc(p.name)} → ${esc(o.name)} a ${price} cr`, oid==='t0'?'good':'info');
 }
 
 function undoLast(){
+  invalidatePerfCache();
   const last=state.undoStack.pop();
   if(!last){toast('Nessuna assegnazione da annullare','warn');return;}
   const o=state.owners.find(x=>x.id===last.ownerId);
@@ -2116,13 +2208,14 @@ function undoLast(){
 }
 
 function setFree(){
+  invalidatePerfCache();
   const p=state.players.find(x=>String(x.id)===String(state.selected));if(!p)return;
   let freed=false;
   for(const o of state.owners){
     const i=o.roster.findIndex(x=>String(x.id)===String(p.id));
     if(i>=0){const x=o.roster.splice(i,1)[0];o.budget+=x.price;o.spent-=x.price;o.roleSpent[x.role]-=x.price;freed=true;}
   }
-  if(freed){save();recalcAll();openPlayer(p.id);toast(`${esc(p.name)} reso disponibile`,'info');}
+  if(freed){save();recalcAll();toast(`${esc(p.name)} reso disponibile`,'info');}
 }
 
 let rosterViewMode='compact';
@@ -2899,6 +2992,7 @@ function settings(){
 
 
 function applySettings(){
+  invalidatePerfCache();
   const b=Number(document.getElementById('setBudget').value);
   if(!Number.isFinite(b)||b<100)return toast('Budget non valido','warn');
 
@@ -2954,6 +3048,7 @@ function exportState(){
 }
 
 function resetAll(){
+  invalidatePerfCache();
   if(!confirm('Cancellare TUTTI gli acquisti e riportare l’asta allo stato iniziale?'))return;
 
   const savedNames=state.owners.map((o,i)=>o.name||(i===0?'La mia squadra':'Rivale '+i));
@@ -3059,6 +3154,7 @@ document.getElementById('onboardingForm')?.addEventListener('submit',e=>{
   state.auctionMode=document.getElementById('onboardingMode').value==='random'?'random':'role';
   state.auctionLog=[]; state.undoStack=[]; state.targets=new Set(); state.selected=null;
   state.marketInflation={factor:1,n:0,pct:0,paidSum:0,expSum:0};
+  invalidatePerfCache();
   try{localStorage.setItem('fantascienza_onboarding_done','1')}catch(e){}
   save(); recalcAll(); hideOnboarding(); toast('Asta configurata. Buona asta!','good');
 });
