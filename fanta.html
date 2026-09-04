@@ -465,17 +465,28 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 
 .footer{color:var(--text-muted);font-size:11px;margin-top:8px;text-align:center}
 
-/* Mantiene il layout desktop originale; su mobile il Focus viene spostato sotto il Listone */
-#mobileFocusAnchor{display:none}
-@media(max-width:900px){
-  #mobileFocusAnchor{display:block}
-  .focus-card{
+.focus-card{
     position:static !important;
     max-height:none !important;
     overflow:visible !important;
     margin-top:14px;
   }
   .focus-card #focusPanel{scroll-margin-top:76px}
+}
+
+
+/* Desktop: Focus nella colonna laterale. Mobile: Focus subito sotto il Listone. */
+#mobileFocusAnchor{display:none}
+#desktopFocusAnchor{display:none}
+@media(max-width:900px){
+  #mobileFocusAnchor{display:block}
+  .market-column .focus-card{
+    position:static !important;
+    max-height:none !important;
+    overflow:visible !important;
+    margin:14px 0 0 !important;
+  }
+  .market-column .focus-card #focusPanel{scroll-margin-top:74px}
 }
 
 </style>
@@ -563,7 +574,8 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
   </div>
     </div>
 
-    <div class="card focus-card">
+    <div id="desktopFocusAnchor"></div>
+<div class="card focus-card">
       <div class="card-header">
         <h2>🎯 Focus Giocatore</h2>
         <span id="selOwner" class="tag">libero</span>
@@ -3311,51 +3323,46 @@ document.getElementById('closePlayerNote')?.addEventListener('click',()=>documen
 document.getElementById('playerNoteModal')?.addEventListener('click',e=>{if(e.target.id==='playerNoteModal')e.currentTarget.classList.add('hidden')});
 
 
-(function(){
-  let desktopParent=null;
-  let desktopNextSibling=null;
 
-  function placeFocusForViewport(){
-    const focus=document.querySelector('.focus-card');
-    const mobileAnchor=document.getElementById('mobileFocusAnchor');
-    if(!focus||!mobileAnchor)return;
 
-    if(!desktopParent){
-      desktopParent=focus.parentNode;
-      desktopNextSibling=focus.nextSibling;
+
+function syncFocusPosition(){
+  const focus=document.querySelector('.focus-card');
+  const mobileAnchor=document.getElementById('mobileFocusAnchor');
+  const desktopAnchor=document.getElementById('desktopFocusAnchor');
+  if(!focus||!mobileAnchor||!desktopAnchor)return;
+
+  if(window.matchMedia('(max-width: 900px)').matches){
+    if(focus.parentElement!==mobileAnchor){
+      mobileAnchor.appendChild(focus);
     }
-
-    if(window.innerWidth<=900){
-      if(focus.parentNode!==mobileAnchor){
-        mobileAnchor.appendChild(focus);
-      }
-    }else{
-      if(focus.parentNode===mobileAnchor && desktopParent){
-        if(desktopNextSibling && desktopNextSibling.parentNode===desktopParent){
-          desktopParent.insertBefore(focus,desktopNextSibling);
-        }else{
-          desktopParent.appendChild(focus);
-        }
-      }
+  }else{
+    if(focus.previousElementSibling!==desktopAnchor){
+      desktopAnchor.insertAdjacentElement('afterend',focus);
     }
   }
+}
 
-  window.addEventListener('resize',placeFocusForViewport);
-  document.addEventListener('DOMContentLoaded',placeFocusForViewport);
-  requestAnimationFrame(placeFocusForViewport);
+window.addEventListener('resize',syncFocusPosition);
+window.addEventListener('orientationchange',syncFocusPosition);
+document.addEventListener('DOMContentLoaded',syncFocusPosition);
+syncFocusPosition();
 
-  const originalOpenPlayer=window.openPlayer;
-  if(typeof originalOpenPlayer==='function'){
-    window.openPlayer=function(id){
-      originalOpenPlayer(id);
-      if(window.innerWidth<=900){
-        requestAnimationFrame(()=>{
-          document.querySelector('.focus-card')?.scrollIntoView({behavior:'smooth',block:'start'});
+const _openPlayerMobileFocus = window.openPlayer;
+if(typeof _openPlayerMobileFocus==='function'){
+  window.openPlayer=function(id){
+    _openPlayerMobileFocus(id);
+    syncFocusPosition();
+    if(window.matchMedia('(max-width: 900px)').matches){
+      requestAnimationFrame(()=>{
+        document.querySelector('#mobileFocusAnchor .focus-card')?.scrollIntoView({
+          behavior:'smooth',
+          block:'start'
         });
-      }
-    };
-  }
-})();
+      });
+    }
+  };
+}
 
 </script>
 </body>
