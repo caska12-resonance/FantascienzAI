@@ -1461,7 +1461,12 @@ function recalcPlayer(p){
   ideal=Math.max(1,Math.floor(ideal*rosterFactor));
   live=Math.max(0,Math.floor(live*rosterFactor));
 
-  if(rem<=0) live=0;
+  if(rem<=0){
+    live=0;
+  }else{
+    // Regola UX/strategica: il Max Live non può essere inferiore al Prezzo Ideale.
+    live=Math.max(ideal,live);
+  }
 
   p.ideal=Math.max(1,ideal);
   p.liveMax=Math.max(0,live);
@@ -1515,6 +1520,19 @@ function recalcAll(){
 
   state.marketInflation=marketInflation();
   state.players.forEach(recalcPlayer);
+
+  // Unificazione finale del Max Live: Focus, Strategia e altre viste
+  // leggono la stessa soglia operativa.
+  const me=state.owners[0];
+  if(me){
+    state.players.forEach(p=>{
+      if(ownerRemaining(me,p.role)<=0){
+        p.liveMax=0;
+      }else{
+        p.liveMax=Math.max(p.ideal||1,p.liveMax||0,ownerLiveMaxRaw(p,me));
+      }
+    });
+  }
 
   render();
   renderInflationStat();
@@ -1870,7 +1888,7 @@ function renderNextTargets(){
 }
 function ownerLabel(id){const o=state.owners.find(x=>x.id===id);return o?o.name:'Libero'}
 
-function ownerLiveMax(p,o){
+function ownerLiveMaxRaw(p,o){
   if(!o||ownerRemaining(o,p.role)<=0)return 0;
 
   let ideal=fvmBasePrice(p);
@@ -1900,6 +1918,27 @@ function ownerLiveMax(p,o){
 
   return Math.max(0,live);
 }
+
+function ownerLiveMax(p,o){
+  if(!o||ownerRemaining(o,p.role)<=0)return 0;
+
+  const raw=Math.max(0,ownerLiveMaxRaw(p,o));
+
+  // Per la propria squadra il pannello Focus ha già il Max Live ricalcolato.
+  // Usiamo sempre il maggiore tra i due algoritmi, così Strategia e Focus
+  // non possono più contraddirsi verso il basso.
+  if(o.id===state.owners[0]?.id){
+    const panel=Math.max(0,Number(p.liveMax||0));
+    const ideal=Math.max(1,Number(p.ideal||1));
+    return Math.max(ideal,panel,raw);
+  }
+
+  // Per i rivali non esiste un p.liveMax specifico per owner:
+  // manteniamo il calcolo owner-specific, garantendo comunque che il massimo
+  // non sia inferiore al prezzo base adattato al contesto disponibile.
+  return Math.max(1,raw);
+}
+
 
 function auctionStrategy(p,o=state.owners[0],currentPrice=null){
   if(!o) return {buyLow:1,buyHigh:1,goodHigh:1,scarcityLow:1,max:1,label:'PASSA',tone:'bad',reason:'Squadra non disponibile.',zone:'stop'};
