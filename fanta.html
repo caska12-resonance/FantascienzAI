@@ -478,7 +478,7 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 /* Desktop: Focus nella colonna laterale. Mobile: Focus subito sotto il Listone. */
 #mobileFocusAnchor{display:none}
 #desktopFocusAnchor{display:none}
-@media(max-width:900px){
+@media(max-width:1180px){
   #mobileFocusAnchor{display:block}
   .market-column .focus-card{
     position:static !important;
@@ -3389,7 +3389,7 @@ function syncFocusPosition(){
   const desktopAnchor=document.getElementById('desktopFocusAnchor');
   if(!focus||!mobileAnchor||!desktopAnchor)return;
 
-  if(window.matchMedia('(max-width: 900px)').matches){
+  if(window.matchMedia('(max-width: 1180px)').matches){
     if(focus.parentElement!==mobileAnchor){
       mobileAnchor.appendChild(focus);
     }
@@ -3410,7 +3410,7 @@ if(typeof _openPlayerMobileFocus==='function'){
   window.openPlayer=function(id){
     _openPlayerMobileFocus(id);
     syncFocusPosition();
-    if(window.matchMedia('(max-width: 900px)').matches){
+    if(window.matchMedia('(max-width: 1180px)').matches){
       requestAnimationFrame(()=>{
         document.querySelector('#mobileFocusAnchor .focus-card')?.scrollIntoView({
           behavior:'smooth',
