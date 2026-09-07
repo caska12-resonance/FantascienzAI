@@ -404,6 +404,29 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 .onboarding-field>span{font-size:11px;font-weight:700;color:var(--text-secondary)}
 .onboarding-field small{font-weight:500;color:var(--text-muted)}
 .onboarding-wide{grid-column:1/-1}
+
+.budget-rank-needs{
+  grid-column:2/4;
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:2px;
+}
+.budget-need-chip{
+  font-size:9px;
+  font-weight:800;
+  padding:3px 6px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(148,163,184,.08);
+  color:var(--text-secondary);
+}
+.budget-need-chip.complete{
+  background:#310c12;
+  border-color:#7f1d1d;
+  color:#fecaca;
+}
+
 @media(max-width:700px){.guide-grid,.onboarding-grid{grid-template-columns:1fr}.onboarding-wide{grid-column:auto}}
 .kbd{padding:2px 6px;border-radius:5px;background:var(--elevated);border:1px solid var(--border);font-family:ui-monospace,monospace;font-size:10px}
 
@@ -490,6 +513,30 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
 }
 
 </style>
+
+<style>
+.budget-leaderboard{display:grid;gap:7px}
+.budget-rank-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.budget-rank-row.mine{box-shadow:inset 0 0 0 1px rgba(34,211,238,.22)}
+.budget-rank-pos{font-weight:800;font-size:12px;color:var(--text-muted);text-align:center}
+.budget-rank-name{min-width:0;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.budget-rank-value{font-size:13px;font-weight:800}
+.budget-rank-track{grid-column:2/4;height:5px;border-radius:999px;background:rgba(148,163,184,.14);overflow:hidden}
+.budget-rank-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#22d3ee,#8b5cf6)}
+
+.role-slot-progress{display:grid;gap:3px;margin-top:7px}
+.role-slot-segment{height:7px;border-radius:999px;background:rgba(148,163,184,.16);border:1px solid rgba(148,163,184,.10)}
+.role-slot-segment.filled{background:#22c55e;border-color:#22c55e}
+.squad-role-details details.role-complete{background:#310c12;border-color:#7f1d1d}
+.squad-role-details details.role-complete summary{color:#fecaca}
+.squad-role-details details.role-complete .role-slot-segment{background:#7f1d1d;border-color:#991b1b}
+.role-summary-main{display:block;min-width:0}
+.role-summary-count{display:flex;align-items:center;justify-content:space-between;gap:8px}
+@media(max-width:700px){
+  .budget-rank-row{grid-template-columns:24px minmax(0,1fr) auto;padding:7px 8px}
+}
+</style>
+
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -557,6 +604,20 @@ select.field{cursor:pointer;appearance:none;background-image:url("data:image/svg
     </div>
 
 <div id="mobileFocusAnchor"></div>
+
+
+<div class="card budget-leaderboard-card">
+  <div class="card-header">
+    <div>
+      <h2>💰 Classifica budget</h2>
+      <span class="sub">Dal chip leader al budget più basso · aggiornamento live</span>
+    </div>
+    <span class="tag">LIVE</span>
+  </div>
+  <div class="card-body">
+    <div id="budgetLeaderboard" class="budget-leaderboard"></div>
+  </div>
+</div>
 
 <div class="card league-rosters-card">
     <div class="card-header league-rosters-header">
@@ -2400,7 +2461,37 @@ function toggleAllSquadRoles(ownerId,button){
   }
 }
 
+
+function renderBudgetLeaderboard(){
+  const box=document.getElementById('budgetLeaderboard');
+  if(!box)return;
+  const sorted=[...state.owners].sort((a,b)=>{
+    const d=(Number(b.budget)||0)-(Number(a.budget)||0);
+    if(d!==0)return d;
+    return (Number(a.spent)||0)-(Number(b.spent)||0);
+  });
+  const topBudget=Math.max(1,...sorted.map(o=>Number(o.budget)||0));
+  box.innerHTML=sorted.map((o,i)=>{
+    const pct=Math.max(0,Math.min(100,Math.round((Number(o.budget)||0)/topBudget*100)));
+    const mine=o.id==='t0'?' mine':'';
+    const marker=i===0?'👑 ':i===sorted.length-1?'🔻 ':'';
+    const needs=Object.keys(ROLE_SLOTS).map(r=>{
+      const cnt=ownerRoleCount(o,r);
+      const missing=Math.max(0,ROLE_SLOTS[r]-cnt);
+      return `<span class="budget-need-chip${missing===0?' complete':''}">${r} ${missing===0?'✓':'-'+missing}</span>`;
+    }).join('');
+    return `<div class="budget-rank-row${mine}">
+      <div class="budget-rank-pos">${i+1}°</div>
+      <div class="budget-rank-name">${marker}${esc(o.name)}${o.id==='t0'?' · TU':''}</div>
+      <div class="budget-rank-value">${o.budget} cr</div>
+      <div class="budget-rank-track"><div class="budget-rank-fill" style="width:${pct}%"></div></div>
+      <div class="budget-rank-needs">${needs}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderSquads(){
+  renderBudgetLeaderboard();
   const grid=document.getElementById('squads');
   if(!grid)return;
 
@@ -2415,14 +2506,24 @@ function renderSquads(){
 
     const roleDetails=Object.keys(ROLE_SLOTS).map(r=>{
       const list=o.roster.filter(x=>x.role===r);
+      const max=ROLE_SLOTS[r];
+      const complete=list.length>=max;
+      const segments=Array.from({length:max},(_,i)=>`<span class="role-slot-segment${i<list.length?' filled':''}"></span>`).join('');
       const total=list.reduce((sum,x)=>sum+(Number(x.price)||0),0);
       const content=list.length
         ?list.map(x=>`<div class="squad-item"><span>${esc(x.name)}</span><span>${x.price} cr</span></div>`).join('')
         :`<div style="font-size:10px;color:var(--text-muted)">Nessun acquisto</div>`;
-      return `<details>
+      return `<details class="${complete?'role-complete':''}">
         <summary>
-          <span>${roleIcon(r)} ${r} · ${list.length}/${ROLE_SLOTS[r]} slot</span>
-          <span>${total} cr spesi</span>
+          <span class="role-summary-main">
+            <span class="role-summary-count">
+              <span>${roleIcon(r)} ${r} · ${list.length}/${max} slot</span>
+              <span>${complete?'COMPLETO · ':''}${total} cr spesi</span>
+            </span>
+            <span class="role-slot-progress" style="grid-template-columns:repeat(${max},minmax(0,1fr))">
+              ${segments}
+            </span>
+          </span>
         </summary>
         <div class="squad-role-list">${content}</div>
       </details>`;
@@ -2788,58 +2889,175 @@ function calibrateHealthComponent(value,type='generic'){
   return v;
 }
 
-function healthScoreBreakdown({quality,titularity,balance,budget,depth,keeperCovered}){
+
+function squadBonusPotential(o,lineup){
+  const details=ownerPlayerDetails(o);
+  if(!details.length)return 0;
+
+  const starterIds=new Set();
+  for(const r of ['P','D','C','A']){
+    (lineup.roleStarter[r]||[]).forEach(p=>starterIds.add(String(p.id)));
+  }
+
+  function bonusProfile(p){
+    if(p.role==='P')return 48;
+
+    const score=Number(p.score||0);
+    const fm=Number(p.faFM||p.fmvLast||0);
+    const gol=Number(p.faGol||0);
+    const ass=Number(p.faAss||0);
+    const trendG=Number(p.faTrendG||0);
+    const penalty=Number(p.penaltyRank||0);
+    const setPiece=Number(p.setPieceRank||0);
+
+    let v=42;
+    if(p.role==='D') v+=Math.max(0,(score-65)*.28);
+    if(p.role==='C') v+=Math.max(0,(score-60)*.38);
+    if(p.role==='A') v+=Math.max(0,(score-55)*.48);
+
+    if(fm>0) v+=(fm-6)*12;
+    if(gol>0) v+=Math.min(18,gol*1.4);
+    if(ass>0) v+=Math.min(12,ass*.9);
+    if(trendG===1) v+=4;
+    else if(trendG===-1) v-=3;
+    if(penalty===1) v+=9;
+    else if(penalty===2) v+=4;
+    if(setPiece===1) v+=4;
+    else if(setPiece===2) v+=2;
+
+    if(['SUPER TOP','TOP'].includes(p.tier2026))v+=5;
+    else if(p.tier2026==='SEMITOP')v+=3;
+    if(['A RISCHIO','INFORTUNATO','DA EVITARE'].includes(p.tier2026))v-=7;
+
+    return Math.max(25,Math.min(100,v));
+  }
+
+  let sum=0,w=0;
+  for(const p of details){
+    const weight=starterIds.has(String(p.id))?1:.28;
+    sum+=bonusProfile(p)*weight;
+    w+=weight;
+  }
+  return Math.round(sum/Math.max(1,w));
+}
+
+function squadRulesScore(o,lineup,keeperCoverage){
+  let scores=[];
+
+  if(state.auctionRules?.cleanSheet){
+    const main=keeperCoverage?.main;
+    let gk=main?Number(goalkeeperAuctionScore(main)||0):0;
+    if(!gk && main)gk=Number(main.score||0);
+    scores.push(Math.max(35,Math.min(100,gk+(keeperCoverage?.covered?5:0))));
+  }
+
+  if(state.auctionRules?.defMod){
+    const defs=(lineup.roleStarter.D||[])
+      .map(p=>Number(modPlayerAuctionScore(p)||p.score||0))
+      .sort((a,b)=>b-a);
+    const needed=state.auctionRules.defModType==='6'?4:3;
+    const picked=defs.slice(0,Math.max(needed,4));
+    if(picked.length){
+      const avg=picked.reduce((a,b)=>a+b,0)/picked.length;
+      const floor=Math.min(...picked);
+      scores.push(Math.max(35,Math.min(100,Math.round(avg*.72+floor*.28))));
+    }else{
+      scores.push(45);
+    }
+  }
+
+  if(!scores.length)return 100;
+  return Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+}
+
+function leagueRelativeProfile(owner,analysis){
+  const peerRows=state.owners
+    .filter(o=>o.id!==owner.id && o.roster.length>0)
+    .map(o=>({o,a:squadAnalysis(o,true)}));
+
+  if(!peerRows.length){
+    return {
+      rank:1,total:1,delta:0,
+      roleDelta:{P:0,D:0,C:0,A:0},
+      summary:'Confronto con la lega non ancora significativo.'
+    };
+  }
+
+  const all=[{id:owner.id,score:analysis.score},...peerRows.map(x=>({id:x.o.id,score:x.a.score}))];
+  all.sort((a,b)=>b.score-a.score);
+  const rank=all.findIndex(x=>x.id===owner.id)+1;
+  const avg=peerRows.reduce((s,x)=>s+x.a.score,0)/peerRows.length;
+
+  const roleDelta={P:0,D:0,C:0,A:0};
+  for(const r of ['P','D','C','A']){
+    const vals=peerRows.map(x=>x.a.qualitative?.roleScores?.[r]||0).filter(v=>v>0);
+    const peerAvg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+    const mine=analysis.qualitative?.roleScores?.[r]||0;
+    roleDelta[r]=peerAvg&&mine?Math.round(mine-peerAvg):0;
+  }
+
+  const sortedRoles=Object.entries(roleDelta).sort((a,b)=>b[1]-a[1]);
+  const best=sortedRoles[0], worst=sortedRoles[sortedRoles.length-1];
+  const summary=`${rank}°/${all.length} nella lega · ${analysis.score>=avg?'+':''}${Math.round(analysis.score-avg)} vs media · miglior vantaggio ${best[0]} ${best[1]>=0?'+':''}${best[1]} · più indietro ${worst[0]} ${worst[1]>=0?'+':''}${worst[1]}.`;
+
+  return {rank,total:all.length,delta:Math.round(analysis.score-avg),roleDelta,summary};
+}
+
+
+function healthScoreBreakdown({starterQuality,titularity,balance,budget,depth,bonus,riskScore,rulesScore,completion,keeperCovered}){
   const calibrated={
-    quality:calibrateHealthComponent(quality,'quality'),
+    starterQuality:calibrateHealthComponent(starterQuality,'quality'),
     titularity:calibrateHealthComponent(titularity,'titularity'),
     balance:calibrateHealthComponent(balance,'balance'),
     budget:calibrateHealthComponent(budget,'budget'),
-    depth:calibrateHealthComponent(depth,'depth')
+    depth:calibrateHealthComponent(depth,'depth'),
+    bonus:Math.max(0,Math.min(100,Math.round(bonus||0))),
+    riskScore:Math.max(0,Math.min(100,Math.round(riskScore||0))),
+    rulesScore:Math.max(0,Math.min(100,Math.round(rulesScore||100)))
   };
 
-  // Forza dell'11 + qualità restano la componente principale.
-  // Profondità e titolarità pesano abbastanza da distinguere una rosa
-  // "11 forte ma corta" da una rosa davvero completa.
-  const weighted=
-    calibrated.quality*.30 +
-    calibrated.titularity*.22 +
-    calibrated.balance*.18 +
-    calibrated.budget*.15 +
-    calibrated.depth*.15;
+  const completionSafe=Math.max(0,Math.min(1,completion||0));
+  const budgetWeight=.15*(1-completionSafe);
+  const coreWeight=1-budgetWeight;
 
-  const keeperBonus=keeperCovered?2:0;
+  const core=
+    calibrated.starterQuality*.35 +
+    calibrated.depth*.15 +
+    calibrated.titularity*.15 +
+    calibrated.bonus*.15 +
+    calibrated.balance*.10 +
+    calibrated.riskScore*.05 +
+    calibrated.rulesScore*.05;
+
+  const weighted=core*coreWeight + calibrated.budget*budgetWeight;
+  const keeperBonus=keeperCovered?1:0;
   const score=Math.round(Math.max(0,Math.min(100,weighted+keeperBonus)));
 
-  return {score,calibrated};
+  return {score,calibrated,budgetWeight:Math.round(budgetWeight*100)};
 }
 
-function squadAnalysis(o){
+function squadAnalysis(o,skipRelative=false){
   const allPlayers=ownerPlayerDetails(o);
   const totalSlots=Object.values(ROLE_SLOTS).reduce((a,b)=>a+b,0);
   const completion=Math.max(0,Math.min(1,o.roster.length/totalSlots));
 
   if(!allPlayers.length){
     return {
-      score:0,rawScore:0,completion,quality:0,titularity:0,balance:0,budget:100,
-      risk:'—',riskCount:0,avgStars:0,complete:false,
+      score:0,rawScore:0,completion,quality:0,starterQuality:0,titularity:0,balance:0,budget:100,
+      bonus:0,rulesScore:100,riskScore:100,risk:'—',riskCount:0,avgStars:0,complete:false,
       advice:'Nessun giocatore acquistato: valutazione non ancora disponibile.',
-      keeperCoverage:null
+      keeperCoverage:null,relative:null,qualitative:{roleScores:{P:0,D:0,C:0,A:0}}
     };
   }
 
   const keeperCoverage=goalkeeperCoverage(o);
   const lineup=squadLineupProfile(o);
-
-  // La qualità della rosa è soprattutto la qualità dell'11 ideale.
-  // Le prime alternative contano come profondità; gli ultimi slot low-cost pesano poco.
+  const starterQuality=lineup.starterAvg||0;
   const quality=lineup.quality;
 
-  // Titolarità: 88% 11 ideale, 12% prime rotazioni.
-  let avgStars=lineup.titularityStars||3;
+  const avgStars=lineup.titularityStars||3;
   const titularity=Math.round(((avgStars-1)/4)*100);
 
-  // Rischio ponderato: un titolare incerto pesa molto più di una riserva low-cost.
-  // Le ultime riserve possono tranquillamente essere profili meno forti senza penalizzare la rosa.
   const starterIds=new Set();
   for(const r of ['P','D','C','A']){
     (lineup.roleStarter[r]||[]).forEach(p=>starterIds.add(String(p.id)));
@@ -2852,84 +3070,78 @@ function squadAnalysis(o){
       keeperCoverage.covered &&
       p.team===keeperCoverage.team &&
       String(p.id)!==String(keeperCoverage.main.id)
-    ){
-      continue;
-    }
+    ) continue;
 
     const isRisk=(p.titStars||3)<=2 ||
       ['A RISCHIO','INFORTUNATO','MERCATO','DA EVITARE'].includes(p.tier2026);
-
-    const isStarter=starterIds.has(String(p.id));
-    const w=isStarter?1:.45;
+    const w=starterIds.has(String(p.id))?1:.45;
     totalRiskWeight+=w;
-
-    if(isRisk){
-      riskWeight+=w;
-      riskCount++;
-    }
+    if(isRisk){riskWeight+=w;riskCount++;}
   }
 
   const riskRatio=riskWeight/Math.max(1,totalRiskWeight);
   const risk=riskRatio>=.28?'ALTO':riskRatio>=.14?'MEDIO':'BASSO';
+  const riskScore=Math.round(Math.max(0,100-riskRatio*120));
 
-  // Equilibrio qualitativo: confronta la qualità reale dei reparti già costruiti.
-  // Nelle aste per reparto non penalizza quelli che non sono ancora iniziati.
   const qualitative=qualitativeBalance(o);
   const balance=qualitative.score;
 
   const missing=totalSlots-o.roster.length;
   const reserveSafety=missing<=0?1:Math.max(0,Math.min(1,(o.budget-missing)/Math.max(1,state.budget0*.25)));
-
   const plan=dynamicBudgetPlan(o);
   const marketNeedTotal=Object.values(plan.costs).reduce((a,b)=>a+b,0);
-  const discretionaryCover=marketNeedTotal>0
-    ?Math.max(0,Math.min(1.25,o.budget/marketNeedTotal))
-    :1;
+  const discretionaryCover=marketNeedTotal>0?Math.max(0,Math.min(1.25,o.budget/marketNeedTotal)):1;
   const marketSafety=Math.max(0,Math.min(1,discretionaryCover));
   const budget=Math.round(Math.max(0,Math.min(100,50+reserveSafety*30+marketSafety*20)));
 
-  // Ricalibrazione dello score: i valori grezzi restano visibili e realistici,
-  // ma lo score complessivo usa una scala calibrata sulla difficoltà reale
-  // di costruire una rosa eccellente.
+  const bonus=squadBonusPotential(o,lineup);
+  const rulesScore=squadRulesScore(o,lineup,keeperCoverage);
+
   const healthBreakdown=healthScoreBreakdown({
-    quality,
+    starterQuality,
     titularity,
     balance,
     budget,
     depth:lineup.depthScore,
+    bonus,
+    riskScore,
+    rulesScore,
+    completion,
     keeperCovered:keeperCoverage.covered
   });
   const rawScore=healthBreakdown.score;
 
-  // Durante l'asta lo score resta prudente; a rosa completa non c'è penalità.
-  const score=Math.round(rawScore*(.78+.22*completion));
+  const score=Math.round(rawScore*(.88+.12*completion));
   const complete=o.roster.length>=totalSlots;
 
   let advice='';
   if(lineup.missing11>0 && o.roster.length>=11){
-    advice=`⚠️ 11 ideale ancora incompleto: mancano ${lineup.missing11} slot per una formazione competitiva.`;
+    advice=`⚠️ 11 ideale ancora incompleto: mancano ${lineup.missing11} slot utili.`;
   }else if(lineup.depthScore<55 && o.roster.length>=15){
-    advice='⚠️ 11 valido ma profondità bassa: troppe riserve deboli possono pesare con turnover, squalifiche e infortuni. Cerca alternative più affidabili.';
-  }else if(keeperCoverage.covered && keeperCoverage.backups.length){
-    advice=`🧤 Porta coperta: ${keeperCoverage.main.name} + ${keeperCoverage.backups.length} riserva${keeperCoverage.backups.length>1?'e':''} della stessa squadra. I backup non penalizzano qualità e titolarità.`;
+    advice='⚠️ Profondità bassa: l’11 può essere competitivo ma la rosa rischia con turnover e assenze.';
+  }else if(bonus<58 && o.roster.length>=15){
+    advice='⚠️ Potenziale bonus sotto media: cerca profili più offensivi, rigoristi o specialisti sui piazzati.';
   }else if(risk==='ALTO'){
-    advice=`⚠️ Rischio alto: ${riskCount} profili hanno titolarità bassa o fascia rischiosa. Privilegia giocatori più affidabili nei prossimi slot.`;
+    advice=`⚠️ Rischio alto: ${riskCount} profili fragili per titolarità, infortuni o fascia.`;
+  }else if(state.auctionRules?.defMod && rulesScore<65){
+    advice='⚠️ Modificatore non ancora valorizzato: servono più difensori affidabili e da buon voto.';
   }else if(avgStars<3.6){
-    advice='⚠️ Titolarità media migliorabile: cerca almeno un profilo da 4-5★ nel prossimo acquisto.';
-  }else if(budget<55){
-    advice='⚠️ Budget sotto pressione: evita sovrapprezzi e proteggi i crediti necessari per completare la rosa.';
+    advice='⚠️ Titolarità media migliorabile: cerca almeno un profilo da 4-5★.';
+  }else if(budget<55 && !complete){
+    advice='⚠️ Budget sotto pressione: proteggi i crediti necessari a chiudere bene la rosa.';
   }else if(balance<60){
     advice=`⚠️ Equilibrio qualitativo basso: ${qualitative.summary}`;
-  }else if(quality>=82&&avgStars>=4.1){
-    advice='✅ Rosa di qualità e affidabile: puoi permetterti una scommessa controllata negli ultimi slot.';
   }else{
-    advice='✅ Costruzione equilibrata: continua a seguire valore live, titolarità e disciplina sul budget.';
+    advice='✅ Rosa ben costruita: qualità, profondità e affidabilità sono su livelli coerenti.';
   }
 
-  return {
-    score,rawScore,completion,quality,titularity,balance,budget,
-    risk,riskCount,avgStars,complete,advice,keeperCoverage,qualitative,lineup,healthBreakdown
+  const result={
+    score,rawScore,completion,quality,starterQuality,titularity,balance,budget,bonus,rulesScore,riskScore,
+    risk,riskCount,avgStars,complete,advice,keeperCoverage,qualitative,lineup,healthBreakdown,relative:null
   };
+
+  if(!skipRelative) result.relative=leagueRelativeProfile(o,result);
+  return result;
 }
 
 function renderMySquadHealth(){
@@ -2949,40 +3161,43 @@ function renderMySquadHealth(){
 
   const cls=a.score>=80?'good':a.score>=65?'warn':'bad';
   const status=a.complete?'VALUTAZIONE FINALE':'VALUTAZIONE PROVVISORIA';
+  const rel=a.relative;
 
   el.innerHTML=`
     <div class="health-score-wrap">
       <div class="health-score ${cls}">${a.score}</div>
       <div>
         <div class="health-title">${status}</div>
-        <div class="health-sub">Score complessivo calibrato su forza dell'11, profondità, titolarità dell'intera rosa, equilibrio qualitativo e gestione del budget. Una rosa eccellente può superare 90/100.</div>
+        <div class="health-sub">Valutatore V2: miglior 11, profondità, titolarità, potenziale bonus, equilibrio, rischio e regole della lega. Il peso del budget scende fino a 0% a rosa completa.</div>
       </div>
     </div>
     <div class="health-grid">
-      <div class="health-metric"><span>Qualità 11 + profondità</span><b>${a.quality}/100</b></div>
-      <div class="health-metric"><span>Titolarità rosa</span><b>${a.avgStars.toFixed(1)}★</b></div>
-      <div class="health-metric"><span>11 ideale</span><b>${a.lineup?.formation||'—'}</b></div>
+      <div class="health-metric"><span>Forza miglior 11</span><b>${a.starterQuality}/100</b></div>
       <div class="health-metric"><span>Profondità</span><b>${a.lineup?.depthScore||0}/100</b></div>
+      <div class="health-metric"><span>Titolarità rosa</span><b>${a.avgStars.toFixed(1)}★</b></div>
+      <div class="health-metric"><span>Potenziale bonus</span><b>${a.bonus}/100</b></div>
       <div class="health-metric"><span>Equilibrio qualità</span><b>${a.balance}/100</b></div>
-      <div class="health-metric"><span>Budget</span><b>${a.budget}/100</b></div>
       <div class="health-metric"><span>Rischio</span><b style="color:${a.risk==='ALTO'?'#fca5a5':a.risk==='MEDIO'?'#fcd34d':'#86efac'}">${a.risk}</b></div>
-      <div class="health-metric"><span>Profili rischiosi</span><b>${a.riskCount}</b></div>
-      <div class="health-metric"><span>Copertura porta</span><b>${a.keeperCoverage?.covered?'COPERTA':'DA VALUTARE'}</b></div>
-      <div class="health-metric"><span>Blocco portieri</span><b>${a.keeperCoverage?.covered?`${a.keeperCoverage.count} ${a.keeperCoverage.team}`:'—'}</b></div>
+      <div class="health-metric"><span>Regole lega</span><b>${a.rulesScore}/100</b></div>
+      <div class="health-metric"><span>Budget</span><b>${a.budget}/100 · peso ${a.healthBreakdown?.budgetWeight||0}%</b></div>
+      <div class="health-metric"><span>11 ideale</span><b>${a.lineup?.formation||'—'}</b></div>
+      <div class="health-metric"><span>Power Ranking</span><b>${rel?`${rel.rank}°/${rel.total}`:'—'}</b></div>
     </div>
     <div class="health-advice">${a.advice}</div>
+    ${rel?`<div style="margin-top:7px;font-size:10px;color:var(--text-secondary)">${rel.summary}</div>`:''}
     ${a.qualitative?.coveredRoles?`
     <div style="margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
       ${Object.keys(ROLE_SLOTS).map(r=>{
         const v=a.qualitative.roleScores[r]||0;
+        const d=rel?.roleDelta?.[r]||0;
         const active=ownerRoleCount(o,r)>0;
         return `<div style="text-align:center;padding:6px 4px;border-radius:8px;background:var(--bg);border:1px solid var(--border)">
           <div style="font-size:9px;color:var(--text-muted)">${r}</div>
           <div style="font-size:12px;font-weight:800;color:${active?(v>=80?'#86efac':v>=65?'#fcd34d':'#fca5a5'):'var(--text-muted)'}">${active?v:'—'}</div>
+          <div style="font-size:9px;color:${d>0?'#86efac':d<0?'#fca5a5':'var(--text-muted)'}">${active?(d>=0?'+':'')+d+' vs lega':'—'}</div>
         </div>`;
       }).join('')}
     </div>
-    <div style="font-size:9px;color:var(--text-muted);margin-top:6px">${a.qualitative.summary}</div>
     `:''}
   `;
 }
@@ -2993,7 +3208,7 @@ function renderFinalSquadReport(){
   if(!el||!status)return;
 
   const total=Object.values(ROLE_SLOTS).reduce((x,y)=>x+y,0);
-  const rows=state.owners.map(o=>({o,a:squadAnalysis(o)}));
+  const rows=state.owners.map(o=>({o,a:squadAnalysis(o,true)}));
   const completed=rows.filter(x=>x.o.roster.length>=total).length;
   const allComplete=completed===state.owners.length;
   status.textContent=allComplete?'finale':`${completed}/${state.owners.length} complete`;
@@ -3001,7 +3216,7 @@ function renderFinalSquadReport(){
   const ranked=rows.slice().sort((x,y)=>{
     const ds=y.a.score-x.a.score;
     if(ds!==0)return ds;
-    return y.a.quality-x.a.quality;
+    return y.a.starterQuality-x.a.starterQuality;
   });
 
   const htmlRows=ranked.map((x,i)=>{
@@ -3010,7 +3225,7 @@ function renderFinalSquadReport(){
     const label=x.a.complete?'completa':`in corso ${progress}`;
     return `<div class="rank-row ${mine?'mine':''}">
       <div class="rank-pos">${i+1}</div>
-      <div class="rank-main"><b>${esc(x.o.name)}</b><span>${label} · 11 ${x.a.lineup?.formation||'—'} · Qualità ${x.a.quality} · Prof. ${x.a.lineup?.depthScore||0} · Tit. rosa ${x.a.avgStars.toFixed(1)}★ · Eq. ${x.a.balance} · Rischio ${x.a.risk}</span></div>
+      <div class="rank-main"><b>${esc(x.o.name)}</b><span>${label} · 11 ${x.a.lineup?.formation||'—'} · Forza 11 ${x.a.starterQuality} · Prof. ${x.a.lineup?.depthScore||0} · Bonus ${x.a.bonus} · Tit. ${x.a.avgStars.toFixed(1)}★ · Eq. ${x.a.balance} · Rischio ${x.a.risk}</span></div>
       <div class="rank-score ${scoreClass(x.a.score)}">${x.a.score}</div>
     </div>`;
   }).join('');
@@ -3019,9 +3234,10 @@ function renderFinalSquadReport(){
   if(allComplete){
     const winner=ranked[0];
     const minePos=ranked.findIndex(x=>x.o.id==='t0')+1;
-    summary=`🏆 Miglior rosa secondo il modello: <b>${esc(winner.o.name)}</b> (${winner.a.score}/100). La tua rosa è ${minePos}ª su ${state.owners.length} con score ${squadAnalysis(state.owners[0]).score}/100.`;
+    const mine=ranked.find(x=>x.o.id==='t0');
+    summary=`🏆 Power Ranking: <b>${esc(winner.o.name)}</b> guida con ${winner.a.score}/100. La tua rosa è ${minePos}ª su ${state.owners.length} con ${mine?.a.score||0}/100. A rosa completa il budget non incide più sul voto.`;
   }else{
-    summary='Classifica provvisoria: lo score tiene conto anche del grado di completamento. La valutazione diventa definitiva quando tutte le rose raggiungono 25 giocatori.';
+    summary='Power Ranking provvisorio: confronta le rose costruite finora. Il peso del budget diminuisce con il completamento e scompare a rosa completa.';
   }
 
   el.innerHTML=`<div class="rank-list">${htmlRows}</div><div class="final-summary">${summary}</div>`;
